@@ -1,0 +1,11 @@
+name = "selective_inference_project"
+uuid = "75b5136c-12d1-4ace-b9c5-72aa02a04071"
+authors = ["bayesmarco "]
+version = "0.1.0"
+
+[deps]
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+GLM = "38e38edf-8417-5370-95a0-9cbb8c7f171a"
+GLMNet = "8d5ece8b-de18-5317-b113-243142960cc6"
+RCall = "6f49c342-dc21-5d91-9882-a32aef131414"
+StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
