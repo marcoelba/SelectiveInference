@@ -35,7 +35,7 @@ module randomisation_ds
         Estimate LASSO on the randomised outcome U, then use OLS on the de-randomised outcome V
     """
     function lasso_plus_ols(;
-        X::Matrix{Float64},
+        X::AbstractArray,
         u::Vector{Float64},
         v::Vector{Float64},
         add_intercept=true
