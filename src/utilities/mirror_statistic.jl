@@ -20,7 +20,7 @@ module mirror_statistic
 
         optimal_t = 0
         t = 0
-        for t in range(0, maximum(mirror_coef), length=100)
+        for t in range(0, maximum(mirror_coef), length=1000)
             n_left_tail = sum(mirror_coef .< -t)
             n_right_tail = sum(mirror_coef .> t)
             n_right_tail = ifelse(n_right_tail > 0, n_right_tail, 1)

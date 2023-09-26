@@ -1,1 +1,1 @@
-# SelectiveInference
+# Selective Inference via Randomisation and Mirror Statistic

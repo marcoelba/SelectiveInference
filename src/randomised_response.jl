@@ -58,13 +58,13 @@ classification_metrics.false_discovery_rate(
     estimate_coef=lm_coef
 )
 
-# To properly check FDR we need to use the estimated CI from the LM regression
-# Using a significance level alpha=5%
-alpha_significance = 0.05
+# To properly check FDR we need to use the estimated pvalues from the LM regression
+# and adjust them for the desired FDR level
+adjusted_pvalues = classification_metrics.bh_correction(p_values=lm_pvalues, fdr_level=0.1)
 
 classification_metrics.false_discovery_rate(
     true_coef=data.beta_true,
-    estimate_coef=lm_pvalues .<= alpha_significance
+    estimate_coef=adjusted_pvalues[:, 3]
 )
 
 
