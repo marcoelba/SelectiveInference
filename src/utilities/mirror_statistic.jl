@@ -10,7 +10,6 @@ module mirror_statistic
         sign.(beta1 .* beta2) .* (abs.(beta1) .+ abs.(beta2))
     end
 
-
     """
         optimal_threshold(mirror_coef, fdr_q)
 
@@ -20,7 +19,7 @@ module mirror_statistic
 
         optimal_t = 0
         t = 0
-        for t in range(0, maximum(mirror_coef), length=1000)
+        for t in range(0, maximum(mirror_coef), length=100)
             n_left_tail = sum(mirror_coef .< -t)
             n_right_tail = sum(mirror_coef .> t)
             n_right_tail = ifelse(n_right_tail > 0, n_right_tail, 1)
@@ -34,6 +33,25 @@ module mirror_statistic
         end
 
         return optimal_t
+    end
+
+    """
+        data_splitting(X::AbstractArray, y::Vector{Float64})
+
+        Produces a 50/50 data splitting of the given arrays
+    """
+    function data_splitting(X::AbstractArray, y::Vector{Float64})
+        n = length(y)
+        r = sample(range(1, n), Int(n/2), replace=false)
+        rc = setdiff(range(1, n), r)
+
+        y1 = y[r]
+        X1 = X[r, :]
+
+        y2 = y[rc]
+        X2 = X[rc, :]
+
+        return (X1, X2, y1, y2)
     end
 
 end
