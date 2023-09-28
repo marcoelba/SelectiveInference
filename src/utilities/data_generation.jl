@@ -48,7 +48,7 @@ module data_generation
         end
 
         # Fill other columns with random Normal samples
-        covariance_x = create_covariance_matrix(p=p, correlation_coefficients=correlation_coefficients)
+        covariance_x = create_toeplitz_covariance_matrix(p=p, correlation_coefficients=correlation_coefficients)
         x_distr = Distributions.MultivariateNormal(covariance_x)
         X = transpose(Random.rand(x_distr, n))
 
@@ -64,10 +64,12 @@ module data_generation
 
 
     """
+        create_toeplitz_covariance_matrix(;p, correlation_coefficients::Union{Vector{Float64}, Vector{Any}}=[])
+
         Generate a covariance matrix with a Toepliz structure, given the provided correlation coefficients for the off-diagonal entries.
         Default is the (diagonal) Identity matrix.
     """
-    function create_covariance_matrix(;p, correlation_coefficients::Union{Vector{Float64}, Vector{Any}}=[])
+    function create_toeplitz_covariance_matrix(;p, correlation_coefficients::Union{Vector{Float64}, Vector{Any}}=[])
         covariance_x = diagm(ones(p))
         if length(correlation_coefficients) > 0
             diag_offset = 0
