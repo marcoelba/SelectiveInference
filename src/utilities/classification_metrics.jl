@@ -3,25 +3,58 @@
 module classification_metrics
 
     """
-        false_discovery_rate(;true_coef, estimate_coef)
+    false_discovery_rate(;
+        true_coef::BitVector,
+        estimated_coef::BitVector
+        )
 
         Calculate the False Discovery Rate from a given set of coefficients
     """
     function false_discovery_rate(;
         true_coef::Union{Vector{Float64}, BitVector},
-        estimate_coef::Union{Vector{Float64}, BitVector})
+        estimated_coef::Union{Vector{Float64}, BitVector}
+        )
 
-        true_coef_bin = 1 .- (true_coef .== 0)
-        estimate_coef_bin = 1 .- (estimate_coef .== 0)
-
-        sum_coef = true_coef_bin + estimate_coef_bin
+        sum_coef = true_coef + estimated_coef
         TP = sum(sum_coef .== 2.)
-        TN = sum(sum_coef .== 0.)
-        FP = sum((sum_coef .== 1.) .& (estimate_coef_bin .== 1.))
+        FP = sum((sum_coef .== 1.) .& (estimated_coef .== 1.))
 
-        FDR = FP / (TP + FP)
+        tot_predicted_positive = TP + FP
+
+        if tot_predicted_positive > 0
+            FDR = FP / tot_predicted_positive
+        else
+            FDR = 0.
+            println("Warning: 0 Positive predictions")
+        end
 
         return FDR
+    end
+
+    """
+        Calculate the True Positive Rate (aka Sensitivity, Recall, Hit Rate):
+        TP / (TP + FN)
+
+        true_positive_rate(;
+            true_coef::Union{Vector{Float64}, BitVector},
+            estimated_coef::Union{Vector{Float64}, BitVector}
+        )
+        # Arguments
+        - `true_coef::BitVector`: boolean vector of true coefficients, '1' refers to a coef != 0 and '0' otherwise.
+        - `estimated_coef::BitVector`: boolean vector of estimated coefficients, '1' refers to a coef != 0 and '0' otherwise.
+    """
+    function true_positive_rate(;
+        true_coef::Union{Vector{Float64}, BitVector},
+        estimated_coef::Union{Vector{Float64}, BitVector}
+        )
+
+        sum_coef = true_coef + estimated_coef
+        TP = sum(sum_coef .== 2.)
+        FN = sum((sum_coef .== 1.) .& (true_coef .== 1))
+
+        TPR = TP / (TP + FN)
+
+        return TPR
     end
 
 

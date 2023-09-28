@@ -56,8 +56,14 @@ module wrapper_pipeline_inference
 
         # Check FDR with just the coefficients from LM on randomised data
         fdr_randomisation_raw = classification_metrics.false_discovery_rate(
-            true_coef=data.beta_true,
-            estimate_coef=lm_pvalues .<= 0.05
+            true_coef=data.beta_true .!= 0.,
+            estimated_coef=lm_pvalues .<= 0.05
+        )
+
+        # TPR rand
+        tpr_randomisation_raw = classification_metrics.true_positive_rate(
+            true_coef=data.beta_true .!= 0.,
+            estimated_coef=lm_pvalues .<= 0.05
         )
 
         # To properly check FDR we need to use the estimated pvalues from the LM regression
@@ -65,8 +71,8 @@ module wrapper_pipeline_inference
         adjusted_pvalues = classification_metrics.bh_correction(p_values=lm_pvalues, fdr_level=fdr_level)
 
         fdr_randomisation_bh = classification_metrics.false_discovery_rate(
-            true_coef=data.beta_true,
-            estimate_coef=adjusted_pvalues[:, 3]
+            true_coef=data.beta_true .!= 0,
+            estimated_coef=adjusted_pvalues[:, 3]
         )
 
         " Add Mirror Statistic on top of randomisation "
@@ -75,8 +81,14 @@ module wrapper_pipeline_inference
         optimal_t = mirror_statistic.optimal_threshold(mirror_coef=ms_coef, fdr_q=fdr_level)
 
         fdr_mirror_statistic = classification_metrics.false_discovery_rate(
-            true_coef=data.beta_true,
-            estimate_coef=ms_coef .> optimal_t
+            true_coef=data.beta_true .!= 0,
+            estimated_coef=ms_coef .> optimal_t
+        )
+
+        # TPR rand
+        tpr_mirror_statistic = classification_metrics.true_positive_rate(
+            true_coef=data.beta_true .!= 0.,
+            estimated_coef=ms_coef .> optimal_t
         )
 
         return (
@@ -86,7 +98,9 @@ module wrapper_pipeline_inference
             lm_pvalues=lm_pvalues,
             fdr_mirror_statistic=fdr_mirror_statistic,
             fdr_randomisation_bh=fdr_randomisation_bh,
-            fdr_randomisation_raw=fdr_randomisation_raw
+            fdr_randomisation_raw=fdr_randomisation_raw,
+            tpr_randomisation_raw=tpr_randomisation_raw,
+            tpr_mirror_statistic=tpr_mirror_statistic
         )
 
     end
