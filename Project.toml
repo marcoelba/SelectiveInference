@@ -4,6 +4,7 @@ authors = ["bayesmarco "]
 version = "0.1.0"
 
 [deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 GLM = "38e38edf-8417-5370-95a0-9cbb8c7f171a"
 GLMNet = "8d5ece8b-de18-5317-b113-243142960cc6"

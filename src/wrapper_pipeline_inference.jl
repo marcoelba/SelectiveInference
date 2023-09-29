@@ -49,7 +49,7 @@ module wrapper_pipeline_inference
         X2 = X2[:, non_zero]
         p = size(X2)[2]
         if add_intercept
-            X2 = hcat(X, ones(size(X2)[1], 1))
+            X2 = hcat(X2, ones(size(X2)[1], 1))
             p += 1
         end
         lm_on_split2 = GLM.lm(X2, y2)
@@ -148,7 +148,7 @@ module wrapper_pipeline_inference
         )
 
         " Mirror Statistic on simple data splitting "
-        split_data = mirror_statistic.data_splitting(X, y)
+        split_data = mirror_statistic.data_splitting(data.X, data.y)
 
         lasso_coef, lm_coef, lm_pvalues = lasso_plus_ols(
             X1=split_data.X1,
@@ -163,15 +163,25 @@ module wrapper_pipeline_inference
         # get FDR threshold
         optimal_t = mirror_statistic.optimal_threshold(mirror_coef=ms_coef, fdr_q=fdr_level)
 
+        # FDR MS
         fdr_ds_ms = classification_metrics.false_discovery_rate(
             true_coef=data.beta_true .!= 0,
             estimated_coef=ms_coef .> optimal_t
         )
 
-        # TPR rand
+        # TPR MS
         tpr_ds_ms = classification_metrics.true_positive_rate(
             true_coef=data.beta_true .!= 0.,
             estimated_coef=ms_coef .> optimal_t
+        )
+
+        class_metrics = (
+            FDR_rand_plus_MS=fdr_rand_ms,
+            FDR_rand_only=fdr_rand_raw,
+            FDR_MS_only=fdr_ds_ms,
+            TPR_rand_plus_MS=tpr_rand_ms,
+            TPR_rand_only=tpr_rand_raw,
+            TPR_MS_only=tpr_ds_ms
         )
 
         return (
@@ -179,12 +189,7 @@ module wrapper_pipeline_inference
             lasso_coef=lasso_coef,
             lm_coef=lm_coef,
             lm_pvalues=lm_pvalues,
-            fdr_rand_ms=fdr_rand_ms,
-            fdr_rand_raw=fdr_rand_raw,
-            fdr_ds_ms=fdr_ds_ms,
-            tpr_rand_raw=tpr_rand_raw,
-            tpr_rand_ms=tpr_rand_ms,
-            tpr_ds_ms=tpr_ds_ms
+            class_metrics=class_metrics
         )
 
     end
