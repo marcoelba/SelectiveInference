@@ -25,7 +25,7 @@ module classification_metrics
             FDR = FP / tot_predicted_positive
         else
             FDR = 0.
-            println("Warning: 0 Positive predictions")
+            # println("Warning: 0 Positive predictions")
         end
 
         return FDR
