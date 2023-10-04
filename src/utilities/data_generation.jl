@@ -27,6 +27,7 @@ module data_generation
         beta_intercept::Float64=0.,
         sigma2::Float64,
         correlation_coefficients::Union{Vector{Float64}, Vector{Any}}=[],
+        block_covariance::Bool=false,
         beta_pool::Vector{Float64}=[-1., -0.8, -0.5, 0.5, 0.8, 1.],
         prop_zero_coef::Float64=0.,
         dtype=Float64
@@ -43,12 +44,25 @@ module data_generation
         # Set coefficients to 0
         if prop_zero_coef > 0.
             n_zero_coef = floor(Int, p * prop_zero_coef)
-            which_zero = sample(range(1, p), n_zero_coef, replace=false)
+            # If the X cov structure is block diagonal, set the first n0 coeff to 0, otherwise random selection
+            if block_covariance
+                which_zero = range(1, n_zero_coef)
+            else
+                which_zero = sample(range(1, p), n_zero_coef, replace=false)
+            end
             beta_true[which_zero] .= 0.
         end
 
-        # Fill other columns with random Normal samples
-        covariance_x = create_toeplitz_covariance_matrix(p=p, correlation_coefficients=correlation_coefficients)
+        # Generate X from a multivariate Normal distribution
+        if block_covariance
+            covariance_x = create_block_diagonal_toeplitz_matrix(
+                p=p,
+                p_blocks=[n_zero_coef, p-n_zero_coef],
+                correlation_coefficients=correlation_coefficients
+            )
+        else
+            covariance_x = create_toeplitz_covariance_matrix(p=p, correlation_coefficients=correlation_coefficients)
+        end
         x_distr = Distributions.MultivariateNormal(covariance_x)
         X = transpose(Random.rand(x_distr, n))
 
@@ -84,6 +98,27 @@ module data_generation
 
         return covariance_x
 
+    end
+
+    """
+        create_block_diagonal_toeplitz_matrix(;p, correlation_coefficients::Union{Vector{Float64}, Vector{Any}}=[])
+
+        Create a block diagonal matrix with 2 blocks
+    """
+    function create_block_diagonal_toeplitz_matrix(;p, p_blocks, correlation_coefficients::Union{Vector{Float64}, Vector{Any}}=[])
+        covariance_full = diagm(ones(p))
+        # make 2 blocks
+        
+        start_position = 1
+        end_position = 0
+        for p_block in p_blocks
+            covariance_block = create_toeplitz_covariance_matrix(p=p_block, correlation_coefficients=correlation_coefficients)
+            end_position += p_block
+            covariance_full[start_position:end_position, start_position:end_position] = covariance_block
+            start_position += p_block
+        end
+        
+        return covariance_full
     end
 
 end

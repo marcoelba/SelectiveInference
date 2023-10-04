@@ -79,6 +79,7 @@ module wrapper_pipeline_inference
         n,
         p,
         correlation_coefficients,
+        block_covariance,
         prop_zero_coef,
         sigma2=1.,
         gamma_randomisation=1.,
@@ -89,6 +90,7 @@ module wrapper_pipeline_inference
             n=n,
             p=p,
             correlation_coefficients=correlation_coefficients,
+            block_covariance=block_covariance,
             prop_zero_coef=prop_zero_coef,
             beta_intercept=1.,
             sigma2=sigma2
