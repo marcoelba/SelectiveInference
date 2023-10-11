@@ -115,13 +115,10 @@ module wrapper_pipeline_inference
                 yhat = GLMNet.predict(lasso_cv, data.X)
 
                 if non_zero >= (n-1)
-                    return
+                    throw(error("# non-zero coeff > n: impossible to estimate sigma^2"))
                 end
                 sigma2_estimate = sum((data.y - yhat).^2) / (n - non_zero - 1)
 
-                println("NUMBER non-zero coefs: $non_zero")
-                println("NUMBER DF LASSO: $(n - non_zero - 1)")
-                println("SIGMA 2 ESTIMATE: $sigma2_estimate")
             end
         end
 
