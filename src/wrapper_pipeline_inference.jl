@@ -82,7 +82,9 @@ module wrapper_pipeline_inference
         block_covariance,
         prop_zero_coef,
         sigma2=1.,
+        beta_intercept=1.,
         gamma_randomisation=1.,
+        estimate_sigma2=true,
         fdr_level=0.1
         )
 
@@ -92,7 +94,7 @@ module wrapper_pipeline_inference
             correlation_coefficients=correlation_coefficients,
             block_covariance=block_covariance,
             prop_zero_coef=prop_zero_coef,
-            beta_intercept=1.,
+            beta_intercept=beta_intercept,
             sigma2=sigma2
         )
 
@@ -100,7 +102,30 @@ module wrapper_pipeline_inference
         # randomisation of Y
         # U = Y + W
         # W ~ N(0, gamma*Sigma), gamma > 0
-        u, v = randomisation_ds.randomisation(y=data.y, gamma=gamma_randomisation, sigma2=sigma2)
+
+        sigma2_estimate = sigma2
+        if estimate_sigma2
+            # From standard fit for  p << n or from Lasso rss for high-dimensional data
+            n_coefficients = p + ifelse(beta_intercept == 0, 0, 1)
+            if p < n/4
+                sigma2_estimate = GLM.deviance(GLM.lm(data.X, data.y)) / (n - n_coefficients)
+            else
+                lasso_cv = GLMNet.glmnetcv(data.X, data.y)
+                non_zero = sum(GLMNet.coef(lasso_cv) .!= 0)
+                yhat = GLMNet.predict(lasso_cv, data.X)
+
+                if non_zero >= (n-1)
+                    return
+                end
+                sigma2_estimate = sum((data.y - yhat).^2) / (n - non_zero - 1)
+
+                println("NUMBER non-zero coefs: $non_zero")
+                println("NUMBER DF LASSO: $(n - non_zero - 1)")
+                println("SIGMA 2 ESTIMATE: $sigma2_estimate")
+            end
+        end
+
+        u, v = randomisation_ds.randomisation(y=data.y, gamma=gamma_randomisation, sigma2=sigma2_estimate)
 
         " Perform variable selection on U using Lasso and Inference on V using OLS "
         lasso_coef, lm_coef, lm_pvalues = lasso_plus_ols(
