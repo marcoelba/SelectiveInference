@@ -14,63 +14,8 @@ module wrapper_pipeline_inference
     include("./utilities/randomisation_ds.jl")
     include("./utilities/mirror_statistic.jl")
     include("./utilities/classification_metrics.jl")
+    include("./utilities/variable_selection_plus_inference.jl")
 
-
-    """
-        lasso_plus_ols(
-            X1::AbstractArray,
-            X2::AbstractArray,
-            y1::Vector{Float64},
-            y2::Vector{Float64},
-            add_intercept=true
-            )
-
-        Estimate LASSO + OLS on the splitted data (either randomisation or standard data splitting)
-    """
-    function lasso_plus_ols(;
-        X1::AbstractArray,
-        X2::AbstractArray,
-        y1::Vector{Float64},
-        y2::Vector{Float64},
-        add_intercept=true
-    )
-        # Lasso from GLMNet includes the intercept by default
-        lasso_cv = GLMNet.glmnetcv(X1, y1)
-        lasso_coef = GLMNet.coef(lasso_cv)
-        # pushfirst!(lasso_coef, lasso_cv.path.a0[argmin(lasso_cv.meanloss)])
-
-        # Non-0 coefficients
-        non_zero = lasso_coef .!= 0
-
-        # Now LM(OLS) estimate on the second half of the data
-        # either from randomisation: V = Y - 1/gamma*W ~ N(mu, sigma2(1 + 1/gamma)I_n)
-        # or from Data Splitting
-        # GLM in Matrix notation does NOT include the intercept by default
-        X2 = X2[:, non_zero]
-        p = size(X2)[2]
-        if add_intercept
-            X2 = hcat(X2, ones(size(X2)[1], 1))
-            p += 1
-        end
-        lm_on_split2 = GLM.lm(X2, y2)
-
-        if add_intercept
-            lm_on_v_coef = GLM.coef(lm_on_split2)[1:(p - 1)]
-            lm_pvalues_subset = GLM.coeftable(lm_on_split2).cols[4][1:(p - 1)]
-            lm_coef_int = last(GLM.coef(lm_on_split2))
-        else
-            lm_on_v_coef = GLM.coef(lm_on_split2)
-            lm_pvalues_subset = GLM.coeftable(lm_on_split2).cols[4]
-            lm_coef_int = 0.
-        end
-
-        lm_coef = zeros(length(lasso_coef))
-        lm_pvalues = ones(length(lasso_coef)) # pvalue for excluded vars assumed to be 1
-        lm_coef[non_zero] = lm_on_v_coef
-        lm_pvalues[non_zero] = lm_pvalues_subset
-
-        return (lasso_coef=lasso_coef, lm_coef=lm_coef, lm_pvalues=lm_pvalues)
-    end
 
     """
         Wrapper to run the whole pipeline, data generation, randomisation inference and FDR calculation
@@ -125,7 +70,7 @@ module wrapper_pipeline_inference
         u, v = randomisation_ds.randomisation(y=data.y, gamma=gamma_randomisation, sigma2=sigma2_estimate)
 
         " Perform variable selection on U using Lasso and Inference on V using OLS "
-        lasso_coef, lm_coef, lm_pvalues = lasso_plus_ols(
+        lasso_coef, lm_coef, lm_pvalues = variable_selection_plus_inference.lasso_plus_ols(
             X1=data.X,
             X2=data.X,
             y1=u,
@@ -145,7 +90,13 @@ module wrapper_pipeline_inference
             estimated_coef=lm_pvalues .<= 0.05
         )
 
-        # # To properly check FDR we need to use the estimated pvalues from the LM regression
+        # Power
+        power_rand_raw = classification_metrics.power(
+            true_coef=data.beta_true .!= 0.,
+            estimated_coef=lm_pvalues .<= 0.05
+        )
+
+        # # To properly check FDR we should use the estimated pvalues from the LM regression
         # # and adjust them for the desired FDR level
         # adjusted_pvalues = classification_metrics.bh_correction(p_values=lm_pvalues, fdr_level=fdr_level)
 
@@ -171,10 +122,17 @@ module wrapper_pipeline_inference
             estimated_coef=ms_coef .> optimal_t
         )
 
+        # Power
+        power_rand_ms = classification_metrics.power(
+            true_coef=data.beta_true .!= 0.,
+            estimated_coef=ms_coef .> optimal_t
+        )
+        
+
         " Mirror Statistic on simple data splitting "
         split_data = mirror_statistic.data_splitting(data.X, data.y)
 
-        lasso_coef, lm_coef, lm_pvalues = lasso_plus_ols(
+        lasso_coef, lm_coef, lm_pvalues = variable_selection_plus_inference.lasso_plus_ols(
             X1=split_data.X1,
             X2=split_data.X2,
             y1=split_data.y1,
@@ -199,13 +157,52 @@ module wrapper_pipeline_inference
             estimated_coef=ms_coef .> optimal_t
         )
 
+        # Power
+        power_ds_ms = classification_metrics.power(
+            true_coef=data.beta_true .!= 0.,
+            estimated_coef=ms_coef .> optimal_t
+        )
+        
+
+        " Multiple Data Splitting (from the Mirror Statistic paper) "
+        mds_selection = mirror_statistic.mds(
+            X=data.X,
+            y=data.y,
+            n_ds=50,
+            fdr_level=fdr_level
+        )
+
+        # FDR MDS
+        fdr_mds_ms = classification_metrics.false_discovery_rate(
+            true_coef=data.beta_true .!= 0,
+            estimated_coef=mds_selection
+        )
+
+        # TPR MDS
+        tpr_mds_ms = classification_metrics.true_positive_rate(
+            true_coef=data.beta_true .!= 0.,
+            estimated_coef=mds_selection
+        )
+
+        # Power
+        power_mds_ms = classification_metrics.power(
+            true_coef=data.beta_true .!= 0.,
+            estimated_coef=mds_selection
+        )
+        
         class_metrics = (
             FDR_rand_plus_MS=fdr_rand_ms,
             FDR_rand_only=fdr_rand_raw,
             FDR_MS_only=fdr_ds_ms,
+            FDR_MDS_only=fdr_mds_ms,
             TPR_rand_plus_MS=tpr_rand_ms,
             TPR_rand_only=tpr_rand_raw,
-            TPR_MS_only=tpr_ds_ms
+            TPR_MS_only=tpr_ds_ms,
+            TPR_MDS_only=tpr_mds_ms,
+            POWER_rand_plus_MS=power_rand_ms,
+            POWER_rand_only=power_rand_raw,
+            POWER_MS_only=power_ds_ms,
+            POWER_MDS_only=power_mds_ms
         )
 
         return (

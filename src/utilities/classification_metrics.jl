@@ -57,6 +57,26 @@ module classification_metrics
         return TPR
     end
 
+    """
+        power(;
+            true_coef::Union{Vector{Float64}, BitVector},
+            estimated_coef::Union{Vector{Float64}, BitVector}
+            )
+    """
+    function power(;
+        true_coef::Union{Vector{Float64}, BitVector},
+        estimated_coef::Union{Vector{Float64}, BitVector}
+        )
+
+        sum_coef = true_coef + estimated_coef
+        TP = sum(sum_coef .== 2.)
+        actual_positives = sum(true_coef .== 1)
+
+        Power = TP / actual_positives
+
+        return Power
+    end
+
 
     """
         bh_correction(;p_values::Vector{Float64}, fdr_level::Float64)
