@@ -80,14 +80,14 @@ module data_generation
     """
         create_toeplitz_covariance_matrix(;p, correlation_coefficients::Union{Vector{Float64}, Vector{Any}}=[])
 
-        Generate a covariance matrix with a Toepliz structure, given the provided correlation coefficients for the off-diagonal entries.
+        Generate a covariance matrix with a Toepliz structure, given the provided correlation coefficient for the main off-diagonal entries.
         Default is the (diagonal) Identity matrix.
     """
-    function create_toeplitz_covariance_matrix(;p, correlation_coefficients::Union{Vector{Float64}, Vector{Any}}=[])
+    function create_toeplitz_covariance_matrix(;p, first_offdiag_corr_coeff::Union{Vector{Float64}, Vector{Any}}=[])
         covariance_x = diagm(ones(p))
-        if length(correlation_coefficients) > 0
+        if length(first_offdiag_corr_coeff) > 0
             diag_offset = 0
-            for cor_coef in correlation_coefficients
+            for cor_coef in first_offdiag_corr_coeff
                 diag_offset += 1
                 for kk in range(1, p - diag_offset)
                     covariance_x[kk, kk + diag_offset] = cor_coef
