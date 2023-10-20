@@ -107,4 +107,24 @@ module classification_metrics
         return pvalues_ranks_original
     end
 
+    """
+    Compute collection of metrics
+    """
+    function wrapper_metrics(true_coef, pred_coef)
+        # FDR
+        fdr = false_discovery_rate(
+            true_coef=true_coef,
+            estimated_coef=pred_coef
+        )
+
+        # TPR
+        tpr = true_positive_rate(
+            true_coef=true_coef,
+            estimated_coef=pred_coef
+        )
+
+        return (fdr=fdr, tpr=tpr)
+
+    end
+
 end

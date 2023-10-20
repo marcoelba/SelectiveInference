@@ -61,6 +61,30 @@ module mirror_statistic
     end
 
     """
+    Single Data Splitting algorithm
+    """
+    function ds(;X::AbstractArray, y::Vector{Float64}, fdr_level::Float64)
+        data_split = data_splitting(X, y)
+
+        lasso_coef, lm_coef, lm_pvalues = variable_selection_plus_inference.lasso_plus_ols(
+            X1=data_split.X1,
+            X2=data_split.X2,
+            y1=data_split.y1,
+            y2=data_split.y2,
+            add_intercept=true
+        )
+        
+        # Get Mirror Statistic
+        ms_coef = mirror_stat(lm_coef, lasso_coef)
+
+        # get FDR threshold
+        optimal_t = optimal_threshold(mirror_coef=ms_coef, fdr_q=fdr_level)
+
+        return ms_coef .> optimal_t
+
+    end
+
+    """
         mds(;X::AbstractArray, y::Vector{Float64}, n_ds::Int, fdr_level::Float64)
 
         Multiple Data Splitting

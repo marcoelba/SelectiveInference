@@ -9,6 +9,7 @@ module wrapper_pipeline_inference
     using StatsPlots
     using Plots
     using LinearAlgebra
+    using DataFrames
 
     include("./utilities/data_generation.jl")
     include("./utilities/randomisation_ds.jl")
@@ -39,6 +40,7 @@ module wrapper_pipeline_inference
             correlation_coefficients=correlation_coefficients,
             block_covariance=block_covariance,
             prop_zero_coef=prop_zero_coef,
+            beta_pool=[-1., -0.8, -0.5, 0.5, 0.8, 1.],
             beta_intercept=beta_intercept,
             sigma2=sigma2
         )
@@ -48,26 +50,7 @@ module wrapper_pipeline_inference
         # U = Y + W
         # W ~ N(0, gamma*Sigma), gamma > 0
 
-        sigma2_estimate = sigma2
-        if estimate_sigma2
-            # From standard fit for  p << n or from Lasso rss for high-dimensional data
-            n_coefficients = p + ifelse(beta_intercept == 0, 0, 1)
-            if p < n/4
-                sigma2_estimate = GLM.deviance(GLM.lm(data.X, data.y)) / (n - n_coefficients)
-            else
-                lasso_cv = GLMNet.glmnetcv(data.X, data.y)
-                non_zero = sum(GLMNet.coef(lasso_cv) .!= 0)
-                yhat = GLMNet.predict(lasso_cv, data.X)
-
-                if non_zero >= (n-1)
-                    throw(error("# non-zero coeff > n: impossible to estimate sigma^2"))
-                end
-                sigma2_estimate = sum((data.y - yhat).^2) / (n - non_zero - 1)
-
-            end
-        end
-
-        u, v = randomisation_ds.randomisation(y=data.y, gamma=gamma_randomisation, sigma2=sigma2_estimate)
+        u, v = randomisation_ds.randomisation(y=data.y, X=data.X, gamma=gamma_randomisation, estimate_sigma2=estimate_sigma2, sigma2=sigma2)
 
         " Perform variable selection on U using Lasso and Inference on V using OLS "
         lasso_coef, lm_coef, lm_pvalues = variable_selection_plus_inference.lasso_plus_ols(
@@ -129,38 +112,25 @@ module wrapper_pipeline_inference
         )
         
 
-        " Mirror Statistic on simple data splitting "
-        split_data = mirror_statistic.data_splitting(data.X, data.y)
-
-        lasso_coef, lm_coef, lm_pvalues = variable_selection_plus_inference.lasso_plus_ols(
-            X1=split_data.X1,
-            X2=split_data.X2,
-            y1=split_data.y1,
-            y2=split_data.y2,
-            add_intercept=true
-        )
-
-        # Add Mirror Statistic
-        ms_coef = mirror_statistic.mirror_stat(lm_coef, lasso_coef)
-        # get FDR threshold
-        optimal_t = mirror_statistic.optimal_threshold(mirror_coef=ms_coef, fdr_q=fdr_level)
+        " Mirror Statistic on single data splitting "
+        ds_selection = mirror_statistic.ds(X=data.X, y=data.y, fdr_level=fdr_level)
 
         # FDR MS
         fdr_ds_ms = classification_metrics.false_discovery_rate(
             true_coef=data.beta_true .!= 0,
-            estimated_coef=ms_coef .> optimal_t
+            estimated_coef=ds_selection
         )
 
         # TPR MS
         tpr_ds_ms = classification_metrics.true_positive_rate(
             true_coef=data.beta_true .!= 0.,
-            estimated_coef=ms_coef .> optimal_t
+            estimated_coef=ds_selection
         )
 
         # Power
         power_ds_ms = classification_metrics.power(
             true_coef=data.beta_true .!= 0.,
-            estimated_coef=ms_coef .> optimal_t
+            estimated_coef=ds_selection
         )
         
 
@@ -212,6 +182,62 @@ module wrapper_pipeline_inference
             lm_pvalues=lm_pvalues,
             class_metrics=class_metrics
         )
+
+    end
+
+
+    """
+        Run inference on data with the provided methods
+    """
+    function wrapper_inference(;
+        data,
+        estimate_sigma2=true,
+        methods_to_evaluate=["DS", "MDS", "Rand_MS"],
+        fdr_level=0.1
+        )
+
+        metrics_array = []
+
+        if "Rand_MS" in methods_to_evaluate
+            rand_ms_selection = randomisation_ds.rand_ms(
+                y=data.y,
+                X=data.X,
+                sigma2=data.sigma2,
+                gamma=1.,
+                estimate_sigma2=estimate_sigma2,
+                fdr_level=fdr_level
+            )
+
+            push!(
+                metrics_array,
+                classification_metrics.wrapper_metrics(data.beta_true .!= 0, rand_ms_selection)
+            )
+        end
+
+        if "DS" in methods_to_evaluate
+            ds_selection = mirror_statistic.ds(X=data.X, y=data.y, fdr_level=fdr_level)
+
+            push!(
+                metrics_array,
+                classification_metrics.wrapper_metrics(data.beta_true .!= 0, ds_selection)
+            )
+        end
+
+        if "MDS" in methods_to_evaluate
+            mds_selection = mirror_statistic.mds(
+                X=data.X,
+                y=data.y,
+                n_ds=50,
+                fdr_level=fdr_level
+            )
+
+            push!(
+                metrics_array,
+                classification_metrics.wrapper_metrics(data.beta_true .!= 0, mds_selection)
+            )
+        end
+
+        return metrics_array
 
     end
 
