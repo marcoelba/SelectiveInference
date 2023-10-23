@@ -25,10 +25,11 @@ final_csv_file_name = "./simulation_n_$(n)_p_$(p)_time_$(current_date).csv"
 
 println("Simulation started")
 
+df_metrics_all = DataFrames.DataFrame()
 combination_counter = 0
 for corr_coeff in corr_coefficients_vec
     for beta_signal_strength in beta_signal_strength_vec
-        combination_counter += 1
+        global combination_counter += 1
         println("Running combination $combination_counter of $n_combinations")
 
         csv_file_name = "./simulation_n_$(n)_p_$(p)_rho_$(floor(Int, corr_coeff*10))_beta_$(floor(Int, beta_signal_strength))_time_$(current_date).csv"
