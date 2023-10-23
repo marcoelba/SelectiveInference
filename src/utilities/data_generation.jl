@@ -72,7 +72,7 @@ module data_generation
             y .+= beta_intercept
         end
 
-        return (y=y, X=X, beta_true=beta_true, sigma2=sigma2)
+        return (y=y, X=X, beta_true=beta_true, sigma2=sigma2, covariance_matrix=covariance_x)
 
     end
 
@@ -101,11 +101,9 @@ module data_generation
     end
 
     """
-        create_toeplitz_covariance_like_paper(p::Int64, corr_coeff::Float64)
-
         Generate a covariance matrix following the same procedure of the MS paper.
     """
-    function create_toeplitz_covariance_like_paper(p::Int64, corr_coeff::Float64)
+    function create_toeplitz_covariance_like_paper(; p::Int64, corr_coeff::Float64)
         covariance_x = diagm(ones(p))
 
         diag_offset = 0
@@ -128,8 +126,8 @@ module data_generation
         Create a block diagonal matrix with 2 blocks
     """
     function create_block_diagonal_toeplitz_matrix(;
-        p,
-        p_blocks,
+        p::Int64,
+        p_blocks::Vector{Int64},
         correlation_coefficients::Union{Vector{Float64}, Vector{Any}}=[],
         cov_like_MS_paper::Bool=false
         )

@@ -28,9 +28,11 @@ function generate_single_prediction(;
         p=data_generation_params.p,
         beta_intercept=data_generation_params.beta_intercept,
         sigma2=data_generation_params.sigma2,
-        covariance_matrix=data_generation_params.covariance_matrix,
+        correlation_coefficients=data_generation_params.correlation_coefficients,
+        cov_like_MS_paper=data_generation_params.cov_like_MS_paper,
+        block_covariance=data_generation_params.block_covariance,
         beta_signal_strength=data_generation_params.beta_signal_strength,
-        prop_zero_coef=data_generation_params.prop_non_zero_coef
+        prop_zero_coef=1. - data_generation_params.prop_non_zero_coef
     )
 
     metrics_array = wrapper_pipeline_inference.wrapper_inference(
@@ -61,7 +63,6 @@ function generate_predictions(;
 
     Random.seed!(1345)
     
-    n_good_experiments = 0
     for replica in range(1, n_replications)
         try
             metrics_array = generate_single_prediction(
@@ -76,7 +77,6 @@ function generate_predictions(;
                 df_metrics[replica, "FDR_" * method] = metrics_array[ii].fdr
             end
             df_metrics[replica, "successsfull_run"] = 1.
-            n_good_experiments += 1
 
         catch pipeline_error
             println("Warning: ", pipeline_error)
@@ -92,23 +92,57 @@ function generate_predictions(;
 end
 
 
-# TEST
-covariance_matrix = diagm(ones(20))
+# ---------------- TEST ---------------------
+# p = 10
+# covariance_matrix = data_generation.create_toeplitz_covariance_like_paper(p=p, corr_coeff=0.8)
+# covariance_matrix = data_generation.create_block_diagonal_toeplitz_matrix(
+#     p=p,
+#     p_blocks=[5, 5],
+#     correlation_coefficients=[0.8],
+#     cov_like_MS_paper=true
+# )
 
-data_generation_params = (
-    n = 200,
-    p = 20,
-    beta_intercept = 1.,
-    sigma2 = 1.,
-    covariance_matrix = covariance_matrix,
-    beta_signal_strength = 10.,
-    prop_non_zero_coef = 0.5
-)
-estimate_sigma2=true
-methods_to_evaluate=["Rand_MS", "DS", "MDS"]
-fdr_level=0.1
-n_replications = 5
+# data_generation_params = (
+#     n = 200,
+#     p = p,
+#     beta_intercept = 1.,
+#     sigma2 = 1.,
+#     correlation_coefficients = [0.8],
+#     cov_like_MS_paper=true,
+#     block_covariance=true,
+#     beta_signal_strength = 10.,
+#     prop_non_zero_coef = 0.5
+# )
 
+# data = data_generation.linear_regression_data(
+#     n=data_generation_params.n,
+#     p=data_generation_params.p,
+#     beta_intercept=data_generation_params.beta_intercept,
+#     sigma2=data_generation_params.sigma2,
+#     correlation_coefficients=data_generation_params.correlation_coefficients,
+#     cov_like_MS_paper=data_generation_params.cov_like_MS_paper,
+#     block_covariance=data_generation_params.block_covariance,
+#     beta_signal_strength=data_generation_params.beta_signal_strength,
+#     prop_zero_coef=data_generation_params.prop_non_zero_coef
+# )
+# data.covariance_matrix
 
-results.data
-results.class_metrics
+# estimate_sigma2=true
+# methods_to_evaluate=["Rand_MS", "DS", "MDS"]
+# fdr_level=0.1
+# n_replications = 5
+
+# metrics = generate_single_prediction(
+#     data_generation_params=data_generation_params,
+#     estimate_sigma2=true,
+#     methods_to_evaluate=["Rand_MS", "DS", "MDS"],
+#     fdr_level=0.1
+# )
+
+# df_metrics = generate_predictions(
+#     n_replications=5,
+#     data_generation_params=data_generation_params,
+#     fdr_level=0.1,
+#     estimate_sigma2=true,
+#     methods_to_evaluate=["Rand_MS", "DS", "MDS"]
+# )
