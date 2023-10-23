@@ -25,7 +25,7 @@ final_csv_file_name = "./simulation_n_$(n)_p_$(p)_time_$(current_date).csv"
 
 println("Simulation started")
 
-combination_counter = 1
+combination_counter = 0
 for corr_coeff in corr_coefficients_vec
     for beta_signal_strength in beta_signal_strength_vec
         combination_counter += 1
@@ -50,14 +50,18 @@ for corr_coeff in corr_coefficients_vec
             data_generation_params=data_generation_params,
             fdr_level=0.1,
             estimate_sigma2=true,
-            methods_to_evaluate=["Rand_MS", "DS"]
+            methods_to_evaluate=["Rand_MS", "DS", "MDS"]
         )
         
         CSV.write(csv_file_name, df_metrics)
 
+        df_metrics[!, "rho"] .= corr_coeff
+        df_metrics[!, "signal_strength"] .= beta_signal_strength
+
         # aggregate dataframes
         if combination_counter == 1
             df_metrics_all = df_metrics
+
         elseif combination_counter > 1
             append!(df_metrics_all, df_metrics)
         end
