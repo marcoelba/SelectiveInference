@@ -11,11 +11,14 @@ module wrapper_pipeline_inference
     using LinearAlgebra
     using DataFrames
 
-    include("./utilities/data_generation.jl")
-    include("./utilities/randomisation_ds.jl")
-    include("./utilities/mirror_statistic.jl")
-    include("./utilities/classification_metrics.jl")
-    include("./utilities/variable_selection_plus_inference.jl")
+    abs_project_path = normpath(joinpath(@__FILE__,".."))
+    rel_path = joinpath(abs_project_path, "utilities")
+
+    include(joinpath(rel_path, "data_generation.jl"))
+    include(joinpath(rel_path, "randomisation_ds.jl"))
+    include(joinpath(rel_path, "mirror_statistic.jl"))
+    include(joinpath(rel_path, "classification_metrics.jl"))
+    include(joinpath(rel_path, "variable_selection_plus_inference.jl"))
 
 
     """
@@ -193,7 +196,8 @@ module wrapper_pipeline_inference
         data,
         estimate_sigma2=true,
         methods_to_evaluate=["DS", "MDS", "Rand_MS"],
-        fdr_level=0.1
+        fdr_level=0.1,
+        alpha_lasso=1.
         )
 
         metrics_array = []
@@ -205,7 +209,8 @@ module wrapper_pipeline_inference
                 sigma2=data.sigma2,
                 gamma=1.,
                 estimate_sigma2=estimate_sigma2,
-                fdr_level=fdr_level
+                fdr_level=fdr_level,
+                alpha_lasso=alpha_lasso
             )
 
             push!(
@@ -215,7 +220,7 @@ module wrapper_pipeline_inference
         end
 
         if "DS" in methods_to_evaluate
-            ds_selection = mirror_statistic.ds(X=data.X, y=data.y, fdr_level=fdr_level)
+            ds_selection = mirror_statistic.ds(X=data.X, y=data.y, fdr_level=fdr_level, alpha_lasso=alpha_lasso)
 
             push!(
                 metrics_array,
@@ -228,7 +233,8 @@ module wrapper_pipeline_inference
                 X=data.X,
                 y=data.y,
                 n_ds=50,
-                fdr_level=fdr_level
+                fdr_level=fdr_level,
+                alpha_lasso=alpha_lasso
             )
 
             push!(

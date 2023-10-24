@@ -7,9 +7,11 @@ module randomisation_ds
     using GLMNet
     using LinearAlgebra
 
-    include("./variable_selection_plus_inference.jl")
-    include("./mirror_statistic.jl")
+    abs_project_path = normpath(joinpath(@__FILE__, "..", ".."))
+    include(joinpath(abs_project_path, "utilities", "variable_selection_plus_inference.jl"))
+    include(joinpath(abs_project_path, "utilities", "mirror_statistic.jl"))
 
+    
     """
         randomisation(;y, gamma, sigma2)
         
@@ -60,7 +62,8 @@ module randomisation_ds
         sigma2::Float64,
         gamma::Float64=1.,
         estimate_sigma2::Bool=true,
-        fdr_level::Float64=0.1
+        fdr_level::Float64=0.1,
+        alpha_lasso::Float64=1.
         )
         # Do Randomisation
         u, v = randomisation(
@@ -77,7 +80,8 @@ module randomisation_ds
             X2=X,
             y1=u,
             y2=v,
-            add_intercept=true
+            add_intercept=true,
+            alpha_lasso=alpha_lasso
         )
 
         " Add Mirror Statistic on top of randomisation "

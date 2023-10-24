@@ -16,7 +16,8 @@ function generate_single_prediction(;
     data_generation_params::NamedTuple,
     estimate_sigma2::Bool=true,
     methods_to_evaluate=["Rand_MS", "DS", "MDS"],
-    fdr_level::Float64=0.1
+    fdr_level::Float64=0.1,
+    alpha_lasso::Float64=1.
     )
     
     # generate data
@@ -37,7 +38,8 @@ function generate_single_prediction(;
         data=data,
         estimate_sigma2=estimate_sigma2,
         methods_to_evaluate=methods_to_evaluate,
-        fdr_level=fdr_level
+        fdr_level=fdr_level,
+        alpha_lasso=alpha_lasso
     )
 
     return metrics_array
@@ -50,7 +52,8 @@ function generate_predictions(;
     data_generation_params::NamedTuple,
     fdr_level::Float64=0.1,
     estimate_sigma2::Bool=true,
-    methods_to_evaluate::Array{String}=["Rand_MS", "DS", "MDS"]
+    methods_to_evaluate::Array{String}=["Rand_MS", "DS", "MDS"],
+    alpha_lasso::Float64=1.
     )
 
     # Initialise metrics to 0
@@ -67,7 +70,8 @@ function generate_predictions(;
                 data_generation_params=data_generation_params,
                 estimate_sigma2=estimate_sigma2,
                 methods_to_evaluate=methods_to_evaluate,
-                fdr_level=fdr_level
+                fdr_level=fdr_level,
+                alpha_lasso=alpha_lasso
             )
         
             for (ii, method) in enumerate(methods_to_evaluate)

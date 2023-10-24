@@ -3,7 +3,8 @@ module mirror_statistic
     using Random
     using Distributions
 
-    include("./variable_selection_plus_inference.jl")
+    abs_project_path = normpath(joinpath(@__FILE__, "..", ".."))
+    include(joinpath(abs_project_path, "utilities", "variable_selection_plus_inference.jl"))
 
 
     """
@@ -63,7 +64,7 @@ module mirror_statistic
     """
     Single Data Splitting algorithm
     """
-    function ds(;X::AbstractArray, y::Vector{Float64}, fdr_level::Float64)
+    function ds(;X::AbstractArray, y::Vector{Float64}, fdr_level::Float64, alpha_lasso::Float64=1.)
         data_split = data_splitting(X, y)
 
         lasso_coef, lm_coef, lm_pvalues = variable_selection_plus_inference.lasso_plus_ols(
@@ -71,7 +72,8 @@ module mirror_statistic
             X2=data_split.X2,
             y1=data_split.y1,
             y2=data_split.y2,
-            add_intercept=true
+            add_intercept=true,
+            alpha_lasso=alpha_lasso,
         )
         
         # Get Mirror Statistic
@@ -89,7 +91,7 @@ module mirror_statistic
 
         Multiple Data Splitting
     """
-    function mds(;X::AbstractArray, y::Vector{Float64}, n_ds::Int, fdr_level::Float64)
+    function mds(;X::AbstractArray, y::Vector{Float64}, n_ds::Int, fdr_level::Float64, alpha_lasso::Float64=1.)
         p = size(X)[2]
         inclusion_matrix = zeros(p, n_ds)
 
@@ -101,7 +103,8 @@ module mirror_statistic
                 X2=data_split.X2,
                 y1=data_split.y1,
                 y2=data_split.y2,
-                add_intercept=true
+                add_intercept=true,
+                alpha_lasso=alpha_lasso
             )
             
             # Get Mirror Statistic

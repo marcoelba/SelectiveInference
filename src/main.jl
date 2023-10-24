@@ -10,10 +10,11 @@ include(joinpath(abs_project_path, "utilities", "simulation_runner.jl"))
 
 # Fixed parameters
 n = 800
-p = 2000
+p = 200
 prop_non_zero_coef = 0.025
 n_replications = 2
 methods_to_evaluate=["Rand_MS", "DS", "MDS"]
+alpha_lasso = 0.5
 
 # Variable quantities (choose between sign strenght and beta pool vec)
 corr_coefficients_vec = [0., 0.2, 0.4, 0.6, 0.8]
@@ -65,7 +66,8 @@ for corr_coeff in corr_coefficients_vec
             data_generation_params=data_generation_params,
             fdr_level=0.1,
             estimate_sigma2=true,
-            methods_to_evaluate=methods_to_evaluate
+            methods_to_evaluate=methods_to_evaluate,
+            alpha_lasso=alpha_lasso
         )
         
         df_metrics[!, "rho"] .= corr_coeff
