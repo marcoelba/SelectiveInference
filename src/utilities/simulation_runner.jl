@@ -7,8 +7,9 @@ using Random
 using DataFrames
 using LinearAlgebra
 
-include("../wrapper_pipeline_inference.jl")
-include("./data_generation.jl")
+abs_project_path = normpath(joinpath(@__FILE__,"..", ".."))
+include(joinpath(abs_project_path, "wrapper_pipeline_inference.jl"))
+include(joinpath(abs_project_path, "utilities", "data_generation.jl"))
 
 
 function generate_single_prediction(;
@@ -31,7 +32,7 @@ function generate_single_prediction(;
         beta_pool=data_generation_params.beta_pool,
         prop_zero_coef=1. - data_generation_params.prop_non_zero_coef
     )
-
+    
     metrics_array = wrapper_pipeline_inference.wrapper_inference(
         data=data,
         estimate_sigma2=estimate_sigma2,

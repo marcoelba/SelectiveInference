@@ -4,7 +4,8 @@ using CSV
 using DataFrames
 using Dates
 
-include("./utilities/simulation_runner.jl")
+abs_project_path = normpath(joinpath(@__FILE__,"..", "..", "src"))
+include(joinpath(abs_project_path, "utilities", "simulation_runner.jl"))
 
 
 # Fixed parameters
@@ -12,16 +13,28 @@ n = 800
 p = 2000
 prop_non_zero_coef = 0.025
 n_replications = 2
+methods_to_evaluate=["Rand_MS", "DS", "MDS"]
 
-# Variable quantities
+# Variable quantities (choose between sign strenght and beta pool vec)
 corr_coefficients_vec = [0., 0.2, 0.4, 0.6, 0.8]
-beta_signal_strength_vec = [3., 4., 5., 6., 7.]
+
+use_beta_pool = true
+if use_beta_pool
+    beta_signal_strength_vec = [1.]
+    beta_pool = [-1., -0.8, -0.5, 0.5, 0.8, 1.]
+    beta_type = "pool"
+else
+    beta_pool = []
+    beta_signal_strength_vec = [3., 4., 5., 6., 7.]
+    beta_type = "random"
+end
+
 n_combinations = length(corr_coefficients_vec) * length(beta_signal_strength_vec)
 
 date_now = Dates.now()
 current_date = string(Dates.year(date_now)) * string(Dates.month(date_now)) * string(Dates.day(date_now))
 
-final_csv_file_name = "./simulation_n_$(n)_p_$(p)_time_$(current_date).csv"
+final_csv_file_name = joinpath(abs_project_path, "experiments", "results", "simulation_n_$(n)_p_$(p)_beta_$(beta_type)_time_$(current_date).csv")
 
 println("Simulation started")
 
@@ -32,7 +45,7 @@ for corr_coeff in corr_coefficients_vec
         global combination_counter += 1
         println("Running combination $combination_counter of $n_combinations")
 
-        csv_file_name = "./simulation_n_$(n)_p_$(p)_rho_$(floor(Int, corr_coeff*10))_beta_$(floor(Int, beta_signal_strength))_time_$(current_date).csv"
+        # csv_file_name = "./simulation_n_$(n)_p_$(p)_rho_$(floor(Int, corr_coeff*10))_beta_$(floor(Int, beta_signal_strength))_time_$(current_date).csv"
 
         data_generation_params = (
             n=n,
@@ -43,6 +56,7 @@ for corr_coeff in corr_coefficients_vec
             cov_like_MS_paper=true,
             block_covariance=true,
             beta_signal_strength=beta_signal_strength,
+            beta_pool=beta_pool,
             prop_non_zero_coef=prop_non_zero_coef
         )
         
@@ -51,11 +65,9 @@ for corr_coeff in corr_coefficients_vec
             data_generation_params=data_generation_params,
             fdr_level=0.1,
             estimate_sigma2=true,
-            methods_to_evaluate=["Rand_MS", "DS", "MDS"]
+            methods_to_evaluate=methods_to_evaluate
         )
         
-        CSV.write(csv_file_name, df_metrics)
-
         df_metrics[!, "rho"] .= corr_coeff
         df_metrics[!, "signal_strength"] .= beta_signal_strength
 
