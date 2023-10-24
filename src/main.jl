@@ -61,7 +61,7 @@ for corr_coeff in corr_coefficients_vec
 
         # aggregate dataframes
         if combination_counter == 1
-            df_metrics_all = df_metrics
+            global df_metrics_all = df_metrics
 
         elseif combination_counter > 1
             append!(df_metrics_all, df_metrics)

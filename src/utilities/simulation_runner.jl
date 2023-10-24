@@ -9,10 +9,6 @@ using LinearAlgebra
 
 include("../wrapper_pipeline_inference.jl")
 include("./data_generation.jl")
-include("./randomisation_ds.jl")
-include("./mirror_statistic.jl")
-include("./classification_metrics.jl")
-include("./variable_selection_plus_inference.jl")
 
 
 function generate_single_prediction(;
@@ -32,6 +28,7 @@ function generate_single_prediction(;
         cov_like_MS_paper=data_generation_params.cov_like_MS_paper,
         block_covariance=data_generation_params.block_covariance,
         beta_signal_strength=data_generation_params.beta_signal_strength,
+        beta_pool=data_generation_params.beta_pool,
         prop_zero_coef=1. - data_generation_params.prop_non_zero_coef
     )
 
@@ -94,23 +91,19 @@ end
 
 # ---------------- TEST ---------------------
 # p = 10
-# covariance_matrix = data_generation.create_toeplitz_covariance_like_paper(p=p, corr_coeff=0.8)
-# covariance_matrix = data_generation.create_block_diagonal_toeplitz_matrix(
-#     p=p,
-#     p_blocks=[5, 5],
-#     correlation_coefficients=[0.8],
-#     cov_like_MS_paper=true
-# )
+# n = 1000
 
 # data_generation_params = (
-#     n = 200,
-#     p = p,
+#     n=n,
+#     p=p,
 #     beta_intercept = 1.,
 #     sigma2 = 1.,
-#     correlation_coefficients = [0.8],
+#     correlation_coefficients = [0.],
 #     cov_like_MS_paper=true,
 #     block_covariance=true,
-#     beta_signal_strength = 10.,
+#     beta_signal_strength = 5.,
+#     beta_pool=[],
+#     # beta_pool=[-1.5, -1., -0.8, 0.8, 1., 1.5],
 #     prop_non_zero_coef = 0.5
 # )
 
@@ -123,14 +116,16 @@ end
 #     cov_like_MS_paper=data_generation_params.cov_like_MS_paper,
 #     block_covariance=data_generation_params.block_covariance,
 #     beta_signal_strength=data_generation_params.beta_signal_strength,
-#     prop_zero_coef=data_generation_params.prop_non_zero_coef
+#     beta_pool=data_generation_params.beta_pool,
+#     prop_zero_coef=1 - data_generation_params.prop_non_zero_coef
 # )
 # data.covariance_matrix
+# data.beta_true
 
 # estimate_sigma2=true
 # methods_to_evaluate=["Rand_MS", "DS", "MDS"]
 # fdr_level=0.1
-# n_replications = 5
+# n_replications = 2
 
 # metrics = generate_single_prediction(
 #     data_generation_params=data_generation_params,
