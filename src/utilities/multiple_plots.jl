@@ -53,14 +53,13 @@ function grouped_boxplot(;df, group_var, var_columns, title_plot, sub_titles)
 
     all_plots = [p1]
 
-    for (ii, var_i) in enumerate(var_columns[2:n_plots])
-        p_l = @df df boxplot(string.(cols(group_var)), cols(Symbol(var_i)), group=cols(group_var), label=false)
+    for plot_i in range(2, n_plots)
+        p_l = @df df boxplot(string.(cols(group_var)), cols(Symbol(var_columns[plot_i])), group=cols(group_var), label=false)
         ylims!((min_y, max_y))
         xlabel!(string(group_var))
-        title!(sub_titles[ii])
+        title!(sub_titles[plot_i])
 
         push!(all_plots, p_l)
-        # plot!(all_plots, p_l)
     end
     
     plot_all = plot(all_plots..., layout = l)

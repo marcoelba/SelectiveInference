@@ -13,7 +13,7 @@ n = 800
 p = 200
 prop_non_zero_coef = 0.025
 n_replications = 2
-methods_to_evaluate=["Rand_MS", "DS", "MDS"]
+methods_to_evaluate=["DS", "MDS"]
 alpha_lasso = 0.5
 
 # Variable quantities (choose between sign strenght and beta pool vec)
@@ -35,7 +35,7 @@ n_combinations = length(corr_coefficients_vec) * length(beta_signal_strength_vec
 date_now = Dates.now()
 current_date = string(Dates.year(date_now)) * string(Dates.month(date_now)) * string(Dates.day(date_now))
 
-final_csv_file_name = joinpath(abs_project_path, "experiments", "results", "simulation_n_$(n)_p_$(p)_beta_$(beta_type)_time_$(current_date).csv")
+final_csv_file_name = joinpath(abs_project_path, "experiments", "results", "simulation_n_$(n)_p_$(p)_beta_$(beta_type)_ElasticNet_time_$(current_date).csv")
 
 println("Simulation started")
 
