@@ -7,12 +7,21 @@ using Dates
 abs_project_path = normpath(joinpath(@__FILE__,"..", "..", "src"))
 include(joinpath(abs_project_path, "utilities", "simulation_runner.jl"))
 
+function single_csv_file_name(;base_experiment_dir, beta_value, rho_value)
+    rho_value = floor(Int, rho_value*10)
+    beta_value = floor(Int, beta_value)
+    return joinpath(
+        base_experiment_dir,
+        "beta_$(beta_value)_rho_$(rho_value).csv"
+        )
+end
+
 # Fixed parameters
 n = 800
-p = 200
+p = 2000
 prop_non_zero_coef = 0.025
-n_replications = 2
-methods_to_evaluate=["DS", "MDS"]
+n_replications = 50
+methods_to_evaluate=["Rand_MS", "DS", "MDS"]
 alpha_enet = 0.7
 use_beta_pool = true
 
@@ -38,24 +47,16 @@ current_date = string(Dates.year(date_now)) * string(Dates.month(date_now)) * st
 # Create directory for current simulation results output
 dir_name = "n_$(n)_p_$(p)_alpha_enet_$(floor(Int, alpha_enet*10))_beta_type_$(beta_type)"
 dir_path = joinpath(abs_project_path, "results", current_date, dir_name)
-if isdir(dir_path)
+if isdir(dir_path) & (length(readdir(dir_path)) != 0)
     throw("Directory already exists! Exiting execution!")
 end
 mkpath(dir_path)
 
+# file name for the global metrics csv file
+global_csv_file_name = joinpath(dir_path, "all_metrics.csv")
 
-function single_csv_file_name(;base_experiment_dir, beta_value, rho_value)
-    rho_value = floor(Int, rho_value*10)
-    beta_value = floor(Int, beta_value)
-    return joinpath(
-        base_experiment_dir,
-        "beta_$(beta_value)_rho_$(rho_value).csv"
-        )
-end
 
 println("Simulation started")
-
-# df_metrics_all = DataFrames.DataFrame()
 
 Threads.@threads for corr_coeff in corr_coefficients_vec
     Threads.@threads for beta_signal_strength in beta_signal_strength_vec
@@ -93,6 +94,27 @@ Threads.@threads for corr_coeff in corr_coefficients_vec
     end
 end
 
-println("Simulation finished")
+println("Parallel computation finished")
 
-# println("Results saved at $(common_csv_file_name)")
+println("Merging results")
+
+df_metrics_all = DataFrames.DataFrame()
+all_files = readdir(dir_path)
+
+for (ii, csv_file) in enumerate(all_files)
+    df_metrics = CSV.read(joinpath(dir_path, csv_file), DataFrames.DataFrame)
+
+    if ii == 1
+        global df_metrics_all = df_metrics
+
+    elseif ii > 1
+        append!(df_metrics_all, df_metrics)
+    end
+
+    # remove the single file
+    rm(joinpath(dir_path, csv_file))
+end
+
+CSV.write(global_csv_file_name, df_metrics_all)
+
+println("Merging done")
