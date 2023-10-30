@@ -112,7 +112,7 @@ for (ii, csv_file) in enumerate(all_files)
     end
 
     # remove the single file
-    rm(joinpath(dir_path, csv_file))
+    # rm(joinpath(dir_path, csv_file))
 end
 
 CSV.write(global_csv_file_name, df_metrics_all)
