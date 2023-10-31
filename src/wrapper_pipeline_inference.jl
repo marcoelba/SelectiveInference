@@ -195,7 +195,7 @@ module wrapper_pipeline_inference
     function wrapper_inference(;
         data,
         estimate_sigma2=true,
-        methods_to_evaluate=["DS", "MDS", "Rand_MS"],
+        methods_to_evaluate=["Rand_MS", "DS", "MDS"],
         fdr_level=0.1,
         alpha_lasso=1.
         )

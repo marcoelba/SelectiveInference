@@ -37,7 +37,7 @@ function triple_boxplot(;df, col_names, title_plot)
 end
 
 
-function grouped_boxplot(;df, group_var, var_columns, title_plot, sub_titles)
+function grouped_boxplot(;df, group_var, var_columns, title_plot, sub_titles, sub_titlesize=10, titlesize=15)
 
     max_y = maximum(maximum(eachrow(df[!, var_columns])))
     min_y = minimum(minimum(eachrow(df[!, var_columns])))
@@ -49,7 +49,7 @@ function grouped_boxplot(;df, group_var, var_columns, title_plot, sub_titles)
     p1 = @df df boxplot(string.(cols(group_var)), cols(Symbol(var_columns[1])), group=cols(group_var), label=false)
     ylims!((min_y, max_y))
     xlabel!(string(group_var))
-    title!(sub_titles[1])
+    title!(sub_titles[1], titlefontsize=sub_titlesize)
 
     all_plots = [p1]
 
@@ -57,12 +57,52 @@ function grouped_boxplot(;df, group_var, var_columns, title_plot, sub_titles)
         p_l = @df df boxplot(string.(cols(group_var)), cols(Symbol(var_columns[plot_i])), group=cols(group_var), label=false)
         ylims!((min_y, max_y))
         xlabel!(string(group_var))
-        title!(sub_titles[plot_i])
+        title!(sub_titles[plot_i], titlefontsize=sub_titlesize)
 
         push!(all_plots, p_l)
     end
     
-    plot_all = plot(all_plots..., layout = l)
+    plot_all = plot(all_plots..., layout = l, plot_titlevspan=0.1)
     plot_all[:plot_title] = title_plot
     plot(plot_all)
+end
+
+
+function plot_all(;df, var_columns, methods_to_evaluate)
+
+    if var_columns == "fdr"
+        var_columns = ["FDR_" * method for method in methods_to_evaluate]
+        title_metric = "False Discovery Rate"
+    elseif var_columns == "tpr"
+        var_columns = ["TPR_" * method for method in methods_to_evaluate]
+        title_metric = "True Positive Rate"
+    end
+
+    unique_rho = unique(df[:, "rho"])
+    unique_beta = unique(df[:, "signal_strength"])
+
+    for rho in unique_rho
+        gp = grouped_boxplot(
+            df=df[df[:, "rho"] .== rho, :],
+            group_var=:signal_strength,
+            var_columns=var_columns,
+            title_plot="$(title_metric) - rho=$(rho)",
+            sub_titles=methods_to_evaluate,
+            sub_titlesize=10.
+        )
+        display(gp)
+    end
+
+    for beta in unique_beta
+        gp = grouped_boxplot(
+            df=df[df[:, "signal_strength"] .== beta, :],
+            group_var=:rho,
+            var_columns=var_columns,
+            title_plot="$(title_metric) - signal strength=$(beta)",
+            sub_titles=methods_to_evaluate,
+            sub_titlesize=10.
+        )
+        display(gp)
+    end
+
 end
