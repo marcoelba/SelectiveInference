@@ -81,28 +81,32 @@ function plot_all(;df, var_columns, methods_to_evaluate)
     unique_rho = unique(df[:, "rho"])
     unique_beta = unique(df[:, "signal_strength"])
 
-    for rho in unique_rho
-        gp = grouped_boxplot(
-            df=df[df[:, "rho"] .== rho, :],
-            group_var=:signal_strength,
-            var_columns=var_columns,
-            title_plot="$(title_metric) - rho=$(rho)",
-            sub_titles=methods_to_evaluate,
-            sub_titlesize=10.
-        )
-        display(gp)
+    if length(unique_beta) > 1
+        for rho in unique_rho
+            gp = grouped_boxplot(
+                df=df[df[:, "rho"] .== rho, :],
+                group_var=:signal_strength,
+                var_columns=var_columns,
+                title_plot="$(title_metric) - rho=$(rho)",
+                sub_titles=methods_to_evaluate,
+                sub_titlesize=10.
+            )
+            display(gp)
+        end
     end
 
-    for beta in unique_beta
-        gp = grouped_boxplot(
-            df=df[df[:, "signal_strength"] .== beta, :],
-            group_var=:rho,
-            var_columns=var_columns,
-            title_plot="$(title_metric) - signal strength=$(beta)",
-            sub_titles=methods_to_evaluate,
-            sub_titlesize=10.
-        )
-        display(gp)
+    if length(unique_rho) > 1
+        for beta in unique_beta
+            gp = grouped_boxplot(
+                df=df[df[:, "signal_strength"] .== beta, :],
+                group_var=:rho,
+                var_columns=var_columns,
+                title_plot="$(title_metric) - signal strength=$(beta)",
+                sub_titles=methods_to_evaluate,
+                sub_titlesize=10.
+            )
+            display(gp)
+        end
     end
 
 end

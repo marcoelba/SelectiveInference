@@ -113,7 +113,7 @@ end
 #     beta_signal_strength = 5.,
 #     # beta_pool=[],
 #     beta_pool=[-1.5, -1., -0.8, 0.8, 1., 1.5],
-#     prop_non_zero_coef = 1 - 0.5
+#     prop_non_zero_coef = 0.2
 # )
 
 # data = data_generation.linear_regression_data(
@@ -161,7 +161,7 @@ end
 # methods_to_evaluate=["Rand_MS", "DS"]
 # fdr_level=0.1
 # n_replications = 3
-# alpha_lasso = 0.7
+# alpha_lasso = 1.
 
 # metrics = generate_single_prediction(
 #     data_generation_params=data_generation_params,
@@ -179,5 +179,3 @@ end
 #     methods_to_evaluate=methods_to_evaluate,
 #     alpha_lasso=alpha_lasso
 # )
-
-# mean(df_metrics[:, "TPR_DS"])
