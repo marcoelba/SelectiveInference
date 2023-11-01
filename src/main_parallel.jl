@@ -8,7 +8,7 @@ abs_project_path = normpath(joinpath(@__FILE__,"..", "..", "src"))
 include(joinpath(abs_project_path, "utilities", "simulation_runner.jl"))
 
 function single_csv_file_name(;base_experiment_dir, beta_value, rho_value)
-    rho_value = floor(Int, rho_value*10)
+    rho_value = floor(Int, rho_value*100)
     beta_value = floor(Int, beta_value)
     return joinpath(
         base_experiment_dir,
@@ -18,13 +18,13 @@ end
 
 # Fixed parameters
 n = 800
-p = 2000
-prop_non_zero_coef = 0.025
-n_replications = 50
+p = 1000
+prop_non_zero_coef = 0.05
+n_replications = 25
 methods_to_evaluate=["Rand_MS", "DS", "MDS"]
 alpha_enet = 0.7
-use_beta_pool = false
-
+use_beta_pool = true
+cov_like_MS_paper = true
 
 # Variable quantities (choose between sign strenght and beta pool vec)
 corr_coefficients_vec = [0., 0.2, 0.4, 0.5, 0.6, 0.8]
@@ -45,7 +45,7 @@ date_now = Dates.now()
 current_date = string(Dates.year(date_now)) * string(Dates.month(date_now)) * string(Dates.day(date_now))
 
 # Create directory for current simulation results output
-dir_name = "n_$(n)_p_$(p)_alpha_enet_$(floor(Int, alpha_enet*10))_beta_type_$(beta_type)"
+dir_name = "n_$(n)_p_$(p)_alpha_enet_$(floor(Int, alpha_enet*10))_beta_type_$(beta_type)_cov_like_paper_$(cov_like_MS_paper)"
 dir_path = joinpath(abs_project_path, "results", current_date, dir_name)
 if isdir(dir_path)
     if (length(readdir(dir_path)) != 0)
@@ -71,7 +71,7 @@ Threads.@threads for corr_coeff in corr_coefficients_vec
             beta_intercept=1.,
             sigma2=1.,
             correlation_coefficients=[corr_coeff],
-            cov_like_MS_paper=true,
+            cov_like_MS_paper=cov_like_MS_paper,
             block_covariance=true,
             beta_signal_strength=beta_signal_strength,
             beta_pool=beta_pool,

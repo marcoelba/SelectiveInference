@@ -33,7 +33,9 @@ function generate_single_prediction(;
         beta_pool=data_generation_params.beta_pool,
         prop_zero_coef=1. - data_generation_params.prop_non_zero_coef
     )
-    
+    # store the lowest eigenvalue (as a measure of how well-conditioned is the cov matrix)
+    cov_eigval = LinearAlgebra.eigvals(data.covariance_matrix)[1]
+
     metrics_array = wrapper_pipeline_inference.wrapper_inference(
         data=data,
         estimate_sigma2=estimate_sigma2,
@@ -42,7 +44,7 @@ function generate_single_prediction(;
         alpha_lasso=alpha_lasso
     )
 
-    return metrics_array
+    return metrics_array, cov_eigval
 
 end
 
@@ -60,13 +62,14 @@ function generate_predictions(;
     metrics_names = "FDR_" .* methods_to_evaluate
     append!(metrics_names, "TPR_" .* methods_to_evaluate)
     append!(metrics_names, ["successsfull_run"])
+    append!(metrics_names, ["cov_eigval"])
     df_metrics = DataFrames.DataFrame([name => zeros(n_replications) for name in metrics_names])
 
     Random.seed!(1345)
     
     for replica in range(1, n_replications)
         try
-            metrics_array = generate_single_prediction(
+            metrics_array, cov_eigval = generate_single_prediction(
                 data_generation_params=data_generation_params,
                 estimate_sigma2=estimate_sigma2,
                 methods_to_evaluate=methods_to_evaluate,
@@ -79,6 +82,7 @@ function generate_predictions(;
                 df_metrics[replica, "FDR_" * method] = metrics_array[ii].fdr
             end
             df_metrics[replica, "successsfull_run"] = 1.
+            df_metrics[replica, "cov_eigval"] = cov_eigval
 
         catch pipeline_error
             println("Warning: ", pipeline_error)
@@ -95,21 +99,21 @@ end
 
 
 # ---------------- TEST ---------------------
-# p = 10
-# n = 1000
+# p = 1000
+# n = 800
 
 # data_generation_params = (
 #     n=n,
 #     p=p,
 #     beta_intercept = 1.,
 #     sigma2 = 1.,
-#     correlation_coefficients = [0.],
-#     cov_like_MS_paper=true,
+#     correlation_coefficients = [0.5],
+#     cov_like_MS_paper=false,
 #     block_covariance=true,
 #     beta_signal_strength = 5.,
-#     beta_pool=[],
-#     # beta_pool=[-1.5, -1., -0.8, 0.8, 1., 1.5],
-#     prop_non_zero_coef = 0.5
+#     # beta_pool=[],
+#     beta_pool=[-1.5, -1., -0.8, 0.8, 1., 1.5],
+#     prop_non_zero_coef = 1 - 0.5
 # )
 
 # data = data_generation.linear_regression_data(
@@ -125,24 +129,55 @@ end
 #     prop_zero_coef=1 - data_generation_params.prop_non_zero_coef
 # )
 # data.covariance_matrix
+# LinearAlgebra.eigvals(data.covariance_matrix)
 # data.beta_true
 
+# # test inv
+# p = 10
+# cov_mat = LinearAlgebra.diagm(ones(p))
+# diag_offset = 0
+# cor_coefs = collect(LinRange(0.9, 0.6, p-1))
+# for cor_coef in cor_coefs
+#     diag_offset += 1
+#     for kk in range(1, p - diag_offset)
+#         cov_mat[kk, kk + diag_offset] = cor_coef
+#         cov_mat[kk + diag_offset, kk] = cor_coef
+#     end
+# end
+
+# LinearAlgebra.cholesky(cov_mat)
+# LinearAlgebra.inv(cov_mat)
+# LinearAlgebra.eigvals(cov_mat)
+
+# # check DS
+# # include(joinpath(abs_project_path, "utilities", "mirror_statistic.jl"))
+# # include(joinpath(abs_project_path,  "utilities", "classification_metrics.jl"))
+
+# # ds_selection = mirror_statistic.ds(X=data.X, y=data.y, fdr_level=fdr_level, alpha_lasso=alpha_lasso)
+# # classification_metrics.wrapper_metrics(data.beta_true .!= 0, ds_selection)
+
+
 # estimate_sigma2=true
-# methods_to_evaluate=["Rand_MS", "DS", "MDS"]
+# methods_to_evaluate=["Rand_MS", "DS"]
 # fdr_level=0.1
-# n_replications = 2
+# n_replications = 3
+# alpha_lasso = 0.7
 
 # metrics = generate_single_prediction(
 #     data_generation_params=data_generation_params,
 #     estimate_sigma2=true,
-#     methods_to_evaluate=["Rand_MS", "DS", "MDS"],
-#     fdr_level=0.1
+#     methods_to_evaluate=methods_to_evaluate,
+#     fdr_level=0.1,
+#     alpha_lasso=alpha_lasso
 # )
 
 # df_metrics = generate_predictions(
-#     n_replications=5,
+#     n_replications=n_replications,
 #     data_generation_params=data_generation_params,
 #     fdr_level=0.1,
 #     estimate_sigma2=true,
-#     methods_to_evaluate=["Rand_MS", "DS", "MDS"]
+#     methods_to_evaluate=methods_to_evaluate,
+#     alpha_lasso=alpha_lasso
 # )
+
+# mean(df_metrics[:, "TPR_DS"])
