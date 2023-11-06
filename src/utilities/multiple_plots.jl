@@ -37,7 +37,14 @@ function triple_boxplot(;df, col_names, title_plot)
 end
 
 
-function grouped_boxplot(;df, group_var, var_columns, title_plot, sub_titles, sub_titlesize=10, titlesize=15)
+"""
+    Grouped Boxplot
+"""
+function grouped_boxplot(;df, group_var, var_columns,
+    title_plot, sub_titles,
+    save_plot=false, plot_name=NaN,
+    sub_titlesize=10, titlesize=15
+    )
 
     max_y = maximum(maximum(eachrow(df[!, var_columns])))
     min_y = minimum(minimum(eachrow(df[!, var_columns])))
@@ -64,11 +71,23 @@ function grouped_boxplot(;df, group_var, var_columns, title_plot, sub_titles, su
     
     plot_all = plot(all_plots..., layout = l, plot_titlevspan=0.1)
     plot_all[:plot_title] = title_plot
+
+    if save_plot
+        savefig(plot_all, plot_name)
+    end
+
     plot(plot_all)
 end
 
 
-function plot_all(;df, var_columns, methods_to_evaluate)
+"""
+    Loop of grouped boxplot over rho and beta 
+"""
+function plot_all(;df, var_columns, methods_to_evaluate, save_plot=false, plot_path=NaN)
+
+    if save_plot
+        plot_path = joinpath(plot_path, "$(var_columns)")
+    end
 
     if var_columns == "fdr"
         var_columns = ["FDR_" * method for method in methods_to_evaluate]
@@ -83,11 +102,18 @@ function plot_all(;df, var_columns, methods_to_evaluate)
 
     if length(unique_beta) > 1
         for rho in unique_rho
+
+            if save_plot
+                plot_path = joinpath(plot_path, "rho_$(rho).pdf")
+            end
+
             gp = grouped_boxplot(
                 df=df[df[:, "rho"] .== rho, :],
                 group_var=:signal_strength,
                 var_columns=var_columns,
                 title_plot="$(title_metric) - rho=$(rho)",
+                save_plot=save_plot,
+                plot_name=plot_path,
                 sub_titles=methods_to_evaluate,
                 sub_titlesize=10.
             )
@@ -96,12 +122,18 @@ function plot_all(;df, var_columns, methods_to_evaluate)
     end
 
     if length(unique_rho) > 1
+        if save_plot
+            plot_path = joinpath(plot_path, "beta_$(beta).pdf")
+        end
+
         for beta in unique_beta
             gp = grouped_boxplot(
                 df=df[df[:, "signal_strength"] .== beta, :],
                 group_var=:rho,
                 var_columns=var_columns,
                 title_plot="$(title_metric) - signal strength=$(beta)",
+                save_plot=save_plot,
+                plot_name=plot_path,
                 sub_titles=methods_to_evaluate,
                 sub_titlesize=10.
             )

@@ -60,7 +60,11 @@ module data_generation
                     cov_like_MS_paper=cov_like_MS_paper
                 )
             else
-                covariance_x = create_toeplitz_covariance_matrix(p=p, correlation_coefficients=correlation_coefficients)
+                if cov_like_MS_paper
+                    covariance_x = create_toeplitz_covariance_like_paper(p=p, corr_coeff=correlation_coefficients[1])
+                else
+                    covariance_x = create_toeplitz_covariance_matrix(p=p, correlation_coefficients=correlation_coefficients)
+                end
             end
         end
         x_distr = Distributions.MultivariateNormal(covariance_x)
