@@ -25,6 +25,7 @@ methods_to_evaluate=["Rand_MS", "DS", "MDS"]
 alpha_enet = 1.
 use_beta_pool = true
 cov_like_MS_paper = true
+block_covariance = true
 
 # Variable quantities (choose between sign strenght and beta pool vec)
 corr_coefficients_vec = [0., 0.3, 0.5, 0.7, 0.9, 0.95, 0.99]
@@ -80,7 +81,7 @@ Threads.@threads for prop_non_zero in prop_non_zero_coef_vec
                 sigma2=1.,
                 correlation_coefficients=[corr_coeff],
                 cov_like_MS_paper=cov_like_MS_paper,
-                block_covariance=true,
+                block_covariance=block_covariance,
                 beta_signal_strength=beta_signal_strength,
                 beta_pool=beta_pool,
                 prop_non_zero_coef=prop_non_zero

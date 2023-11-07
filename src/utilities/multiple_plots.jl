@@ -87,6 +87,10 @@ function plot_all(;df, var_columns, methods_to_evaluate, save_plot=false, plot_p
 
     if save_plot
         plot_path = joinpath(plot_path, "$(var_columns)")
+
+        if ! isdir(plot_path)
+            mkpath(plot_path)
+        end
     end
 
     if var_columns == "fdr"
@@ -104,7 +108,7 @@ function plot_all(;df, var_columns, methods_to_evaluate, save_plot=false, plot_p
         for rho in unique_rho
 
             if save_plot
-                plot_path = joinpath(plot_path, "rho_$(rho).pdf")
+                plot_name = joinpath(plot_path, "rho_$(rho).pdf")
             end
 
             gp = grouped_boxplot(
@@ -113,7 +117,7 @@ function plot_all(;df, var_columns, methods_to_evaluate, save_plot=false, plot_p
                 var_columns=var_columns,
                 title_plot="$(title_metric) - rho=$(rho)",
                 save_plot=save_plot,
-                plot_name=plot_path,
+                plot_name=plot_name,
                 sub_titles=methods_to_evaluate,
                 sub_titlesize=10.
             )
@@ -122,18 +126,19 @@ function plot_all(;df, var_columns, methods_to_evaluate, save_plot=false, plot_p
     end
 
     if length(unique_rho) > 1
-        if save_plot
-            plot_path = joinpath(plot_path, "beta_$(beta).pdf")
-        end
 
         for beta in unique_beta
+            if save_plot
+                plot_name = joinpath(plot_path, "beta_$(beta).pdf")
+            end
+    
             gp = grouped_boxplot(
                 df=df[df[:, "signal_strength"] .== beta, :],
                 group_var=:rho,
                 var_columns=var_columns,
                 title_plot="$(title_metric) - signal strength=$(beta)",
                 save_plot=save_plot,
-                plot_name=plot_path,
+                plot_name=plot_name,
                 sub_titles=methods_to_evaluate,
                 sub_titlesize=10.
             )
