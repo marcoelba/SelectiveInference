@@ -16,20 +16,12 @@ include(joinpath(rel_path, "data_generation.jl"))
 include(joinpath(rel_path, "randomisation_ds.jl"))
 include(joinpath(rel_path, "variable_selection_plus_inference.jl"))
 
-function fun_test(x)
-    y = sqrt(x)
-end
-fun_test(10)
 
-# timing
-@btime fun_test(10)
-@benchmark fun_test(10)
-
-
+# settings as used in the T-rex paper
 p1 = 10.
 n = 300
-p = 5000
-correlation_coefficients = [0.5]
+p = 1000
+correlation_coefficients = [0.]
 cov_like_MS_paper = true
 block_covariance = true
 beta_signal_strength = 5.
@@ -51,6 +43,42 @@ data = data_generation.linear_regression_data(
 y = data.y
 X = data.X
 
+Base.summarysize(X) / (1024^2)
+Base.summarysize(y) / (1024^2)
+Base.summarysize(data.covariance_matrix) / (1024^2)
+
+
+# ------------- test memory size of big matrix -------------
+k = 10000
+# x_dist = Distributions.Normal{Float32}(0.f0, 1.f0)
+x_dist = Distributions.Normal{Float64}(0., 1.)
+X = rand(x_dist, k, k)
+Base.summarysize(X) / (1024^2)
+
+X = nothing
+Base.GC.gc()
+
+
+using GLMNet
+using LARS
+
+# LASSO
+lasso_cv = GLMNet.glmnetcv(X, y, alpha=1.)
+lasso_coef = GLMNet.coef(lasso_cv)
+# Non-0 coefficients
+non_zero = lasso_coef .!= 0
+sum(non_zero)
+# Time
+@benchmark GLMNet.glmnetcv(X, y, alpha=1.)
+
+
+# LARS
+lars_est = LARS.lars(copy(X), y, method=:lasso, verbose=false)
+
+
+# -----------------------------------------------------------------
+
+
 function rand_ms_timing()
     randomisation_ds.rand_ms(
         y=y,
@@ -63,6 +91,33 @@ function rand_ms_timing()
     )
 end
 
-BenchmarkTools.DEFAULT_PARAMETERS.seconds = 20
+BenchmarkTools.DEFAULT_PARAMETERS.seconds = 30
 @benchmark rand_ms_timing()
 
+
+# times
+n_vars = [1000, 5000, 10000, 20000]
+n_t = [0.54, 1.72, 3.8, 8.6]
+n_mb = [85, 370, 730, 1400]
+
+# Plot
+l = @layout [grid(1, 2)]
+x_labels = ["1e3", "5e3", "1e4", "2e4"]
+
+# Time
+p1 = plot(n_vars, n_t, label="time - seconds")
+xlabel!("N. variables")
+ylabel!("Seconds")
+xticks!(n_vars, x_labels)
+yticks!(n_t)
+
+# memory
+p2 = plot(n_vars, n_mb/1024, label="mem - GB")
+xlabel!("N. variables")
+ylabel!("GB")
+xticks!(n_vars, x_labels)
+yticks!(round.(n_mb/1024, digits=2))
+
+all_p = plot(p1, p2, layout = l, thickness_scaling=1.)
+plot(all_p)
+savefig(all_p, joinpath(abs_project_path, "results", "computation_benchmark.pdf"))

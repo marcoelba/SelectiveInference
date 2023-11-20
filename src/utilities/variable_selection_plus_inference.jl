@@ -28,7 +28,9 @@ module variable_selection_plus_inference
         alpha_lasso::Float64=1.
     )
         # Lasso from GLMNet includes the intercept by default
-        lasso_cv = GLMNet.glmnetcv(X1, y1, alpha=alpha_lasso)
+        n_obs = length(y1)
+        max_df = n_obs - Int(max(n_obs*0.05, 1))
+        lasso_cv = GLMNet.glmnetcv(X1, y1, alpha=alpha_lasso, dfmax=max_df)
         lasso_coef = GLMNet.coef(lasso_cv)
         # pushfirst!(lasso_coef, lasso_cv.path.a0[argmin(lasso_cv.meanloss)])
 

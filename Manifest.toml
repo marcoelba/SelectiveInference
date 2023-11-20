@@ -1,8 +1,8 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.9.2"
+julia_version = "1.9.3"
 manifest_format = "2.0"
-project_hash = "a7bc7e80fea31d376ccce9620eb390749673b6f5"
+project_hash = "aaa5398e0cb3ff5742bcfa0ed68a44afab7072e5"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -481,6 +481,14 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "f6250b16881adf048549549fba48b1161acdac8c"
 uuid = "c1c5ebd0-6772-5130-a774-d5fcae4a789d"
 version = "3.100.1+0"
+
+[[deps.LARS]]
+deps = ["Distributions", "LinearAlgebra", "Printf", "Statistics"]
+git-tree-sha1 = "afdbd85c04a59ee7cff8adcd68a6876612b6c499"
+repo-rev = "master"
+repo-url = "https://github.com/simonster/LARS.jl"
+uuid = "ca81f029-5295-44ee-bb8b-6d7efe382a93"
+version = "0.1.0"
 
 [[deps.LERC_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
