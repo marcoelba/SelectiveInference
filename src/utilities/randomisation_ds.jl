@@ -30,7 +30,8 @@ module randomisation_ds
             if p < n/4
                 sigma2_estimate = GLM.deviance(GLM.lm(X, y)) / (n - n_coefficients)
             else
-                lasso_cv = GLMNet.glmnetcv(X, y)
+                max_df = n - Int(max(n*0.1, 1))
+                lasso_cv = GLMNet.glmnetcv(X, y, dfmax=max_df)
                 non_zero = sum(GLMNet.coef(lasso_cv) .!= 0)
                 yhat = GLMNet.predict(lasso_cv, X)
 

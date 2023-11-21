@@ -18,9 +18,9 @@ include(joinpath(rel_path, "variable_selection_plus_inference.jl"))
 
 
 # settings as used in the T-rex paper
-p1 = 10.
+p1 = 30.
 n = 300
-p = 1000
+p = 10000
 correlation_coefficients = [0.]
 cov_like_MS_paper = true
 block_covariance = true
@@ -63,7 +63,7 @@ using GLMNet
 using LARS
 
 # LASSO
-lasso_cv = GLMNet.glmnetcv(X, y, alpha=1.)
+lasso_cv = GLMNet.glmnetcv(X, y, alpha=1., dfmax=30)
 lasso_coef = GLMNet.coef(lasso_cv)
 # Non-0 coefficients
 non_zero = lasso_coef .!= 0
