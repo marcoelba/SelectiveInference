@@ -98,7 +98,7 @@ PlotlyJS.savefig(hm_plotly, "HM_sub_genes.pdf")
 
 
 open("./HM_sub_genes.html", "w") do io
-    PlotlyBase.to_html(io, hm_plotly.plot)
+    PlotlyBase.to_html(io, hm_plotly.plot, autoplay=true)
 end
 
 # Check PCA
