@@ -94,9 +94,8 @@ hm_plotly = PlotlyJS.plot(PlotlyJS.heatmap(
     y=sub_genes_names,
     z=sub_cor_mat
 ))
+
 PlotlyJS.savefig(hm_plotly, "HM_sub_genes.pdf")
-
-
 open("./HM_sub_genes.html", "w") do io
     PlotlyBase.to_html(io, hm_plotly.plot, autoplay=true)
 end
