@@ -30,7 +30,7 @@ module randomisation_ds
             if p < n/4
                 sigma2_estimate = GLM.deviance(GLM.lm(X, y)) / (n - n_coefficients)
             else
-                max_df = n - Int(max(n*0.1, 1))
+                max_df = n - Int(round(max(n*0.1, 1)))
                 lasso_cv = GLMNet.glmnetcv(X, y, dfmax=max_df)
                 non_zero = sum(GLMNet.coef(lasso_cv) .!= 0)
                 yhat = GLMNet.predict(lasso_cv, X)
@@ -91,6 +91,54 @@ module randomisation_ds
         optimal_t = mirror_statistic.optimal_threshold(mirror_coef=ms_coef, fdr_q=fdr_level)
         return ms_coef .> optimal_t
         
+    end
+
+
+    """
+        real_data_rand_ms
+
+        Randomisation + Mirror Statistic
+            for real data analysis
+    """
+    function real_data_rand_ms(;
+        y::Vector{Float64},
+        X::Union{Matrix{Float64}, Transpose{Float64, Matrix{Float64}}},
+        gamma::Float64=1.,
+        fdr_level::Float64=0.1,
+        alpha_lasso::Float64=1.
+        )
+        # Do Randomisation
+        u, v = randomisation(
+            y=y,
+            X=X,
+            gamma=gamma,
+            estimate_sigma2=true,
+            sigma2=1.
+        )
+
+        " Perform variable selection on U using Lasso and Inference on V using OLS "
+        lasso_coef, lm_coef, lm_pvalues = variable_selection_plus_inference.lasso_plus_ols(
+            X1=X,
+            X2=X,
+            y1=u,
+            y2=v,
+            add_intercept=true,
+            alpha_lasso=alpha_lasso
+        )
+
+        " Add Mirror Statistic on top of randomisation "
+        ms_coef = mirror_statistic.mirror_stat(lm_coef, lasso_coef)
+        # get FDR threshold
+        optimal_t = mirror_statistic.optimal_threshold(mirror_coef=ms_coef, fdr_q=fdr_level)
+
+        # Return dictionary with all useful objects
+        out_dict = Dict(
+            ("selected_ms_coef" => ms_coef .> optimal_t),
+            ("lm_coef" => lm_coef),
+            ("lm_pvalues" => lm_pvalues)
+        )
+
+        return out_dict
     end
 
 end
