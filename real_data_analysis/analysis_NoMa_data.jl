@@ -11,10 +11,10 @@ using StatsBase
 using LinearAlgebra
 using MultivariateStats
 
-script_path = normpath(joinpath(@__FILE__,".."))
+script_path = normpath(joinpath(@__FILE__, "..", ".."))
 include(joinpath(script_path, "src", "utilities", "randomisation_ds.jl"))
 
-
+# Load data
 file_path_outcome = "/home/marco_ocbe/Documents/UiO_Postdoc/data/NoMa/NoMa_clin_outcome.csv"
 file_path_features = "/home/marco_ocbe/Documents/UiO_Postdoc/data/NoMa/NoMa_microarray.csv"
 
@@ -95,6 +95,11 @@ hm_plotly = PlotlyJS.plot(PlotlyJS.heatmap(
     z=sub_cor_mat
 ))
 PlotlyJS.savefig(hm_plotly, "HM_sub_genes.pdf")
+
+
+open("./HM_sub_genes.html", "w") do io
+    PlotlyBase.to_html(io, hm_plotly.plot)
+end
 
 # Check PCA
 pca_model = MultivariateStats.fit(PCA, transpose(X), maxoutdim=size(X)[2]);
