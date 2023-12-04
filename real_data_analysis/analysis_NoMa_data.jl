@@ -34,9 +34,6 @@ Plots.histogram(log.(y.fSTrig), label="Trigs")
 df = DataFrames.innerjoin(df_y, df_X, on=:ID)
 size(df)
 # check for missing values
-names(df)[mapcols(x -> any(ismissing.(x)), df)[1, :]]
-mapcols(x -> any(ismissing.(x)), df) .== true
-
 names(df)[collect(any(ismissing.(c)) for c in eachcol(df))]
 collect(sum(ismissing.(c)) for c in eachcol(df))
 DataFrames.dropmissing!(df, "fSTrig")
@@ -71,11 +68,15 @@ Plots.histogram(X[:, 1])
 Plots.histogram(X[:, 2])
 
 # Some exploratory analysis
-cor_mat = cor(X, dims=1)
-heatmap(cor_mat)
 
+cor_mat = cor(X, dims=1)
 # set diag to 0, not needed
 cor_mat[LinearAlgebra.diagind(cor_mat)] .= 0.
+utri = triu!(trues(size(cor_mat)), 1)
+cor_mat[utri] .= NaN64
+hm = heatmap(cor_mat)
+Plots.savefig(hm, "HM_full.pdf")
+
 (sum(abs.(cor_mat) .> 0.75) - size(X)[2]) / 2
 cor_over_05 = abs.(cor_mat) .> 0.75
 
@@ -110,7 +111,10 @@ cum_prop_explained_var = cumsum(prop_explained_var)
 
 eigvals(pca_model)
 
-plot(cum_prop_explained_var, marker=(:circle, 5), label="cumulative prop")
+cum_prop_pca = plot(cum_prop_explained_var, marker=(:circle, 5), label="cumulative proportion")
+xlabel!("Principal Components")
+Plots.savefig(cum_prop_pca, "cum_prop_pca.pdf")
+
 plot(prop_explained_var, marker=(:circle, 5), label="prop")
 # no strong Principal components
 # slow growth of variance explained
@@ -122,7 +126,10 @@ kpca_model = MultivariateStats.fit(KernelPCA, transpose(X), maxoutdim=size(X)[2]
 prop_explained_var = eigvals(kpca_model::KernelPCA) / sum(eigvals(kpca_model::KernelPCA))
 cum_prop_explained_var = cumsum(prop_explained_var)
 
-plot(cum_prop_explained_var, marker=(:circle, 5), label="cumulative prop")
+cum_prop_kpca = plot(cum_prop_explained_var, marker=(:circle, 5), label="cumulative prop")
+xlabel!("Kernel Principal Components")
+Plots.savefig(cum_prop_kpca, "cum_prop_kpca.pdf")
+
 plot(prop_explained_var, marker=(:circle, 5), label="prop")
 # no strong Kernel Principal components
 # slow growth of variance explained
