@@ -166,7 +166,18 @@ genes_names[res["selected_ms_coef"]]
 
 # LM coefs and p-values
 res["lm_coef"][res["selected_ms_coef"]]
+# -0.19816431665541465
+# -0.08882468297940073
+res["lm_coef_int"]
+# 0.12995040514848458
+
 res["lm_pvalues"][res["selected_ms_coef"]]
+
+exp.(res["lm_coef"][res["selected_ms_coef"]])
+exp(res["lm_coef_int"])
+
+exp(res["lm_coef_int"]) .* exp.(res["lm_coef"][res["selected_ms_coef"]])
+
 
 # only pvalues
 sum(res["lm_pvalues"] .<= 0.05)

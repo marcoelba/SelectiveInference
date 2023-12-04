@@ -64,7 +64,7 @@ module variable_selection_plus_inference
         lm_coef[non_zero] = lm_on_v_coef
         lm_pvalues[non_zero] = lm_pvalues_subset
 
-        return (lasso_coef=lasso_coef, lm_coef=lm_coef, lm_pvalues=lm_pvalues)
+        return (lasso_coef=lasso_coef, lm_coef=lm_coef, lm_pvalues=lm_pvalues, lm_coef_int=lm_coef_int)
     end
 
 end
