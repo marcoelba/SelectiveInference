@@ -182,6 +182,8 @@ exp(res["lm_coef_int"]) .* exp.(res["lm_coef"][res["selected_ms_coef"]])
 # only pvalues
 sum(res["lm_pvalues"] .<= 0.05)
 
+# LASSO selection
+sum(res["lm_coef"] .!= 0)
 
 # ---------------- FDR: 20% ----------------
 res = randomisation_ds.real_data_rand_ms(
