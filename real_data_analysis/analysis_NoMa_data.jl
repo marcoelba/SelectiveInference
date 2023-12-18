@@ -15,8 +15,8 @@ script_path = normpath(joinpath(@__FILE__, "..", ".."))
 include(joinpath(script_path, "src", "utilities", "randomisation_ds.jl"))
 
 # Load data
-file_path_outcome = "/home/marco_ocbe/Documents/UiO_Postdoc/data/NoMa/NoMa_clin_outcome.csv"
-file_path_features = "/home/marco_ocbe/Documents/UiO_Postdoc/data/NoMa/NoMa_microarray.csv"
+file_path_outcome = "/home/marco_ocbe/Documents/UiO_Postdoc/data/NoMa/noma_trigs.csv"
+file_path_features = "/home/marco_ocbe/Documents/UiO_Postdoc/data/NoMa/noma_microarray.csv"
 
 df_y = CSV.read(file_path_outcome, DataFrame)
 df_X = CSV.read(file_path_features, DataFrame)
@@ -68,6 +68,12 @@ Plots.histogram(X[:, 1])
 Plots.histogram(X[:, 2])
 
 # Some exploratory analysis
+cor_yx = collect(transpose(cor(y, X)))
+histogram(cor_yx)
+argmax(cor_yx)
+
+scatter(y, X[:, argmax(cor_yx)])
+scatter(y, X[:, argmin(cor_yx)])
 
 cor_mat = cor(X, dims=1)
 # set diag to 0, not needed
