@@ -53,18 +53,31 @@ module variable_selection_plus_inference
             lm_on_v_coef = GLM.coef(lm_on_split2)[1:(p - 1)]
             lm_pvalues_subset = GLM.coeftable(lm_on_split2).cols[4][1:(p - 1)]
             lm_coef_int = last(GLM.coef(lm_on_split2))
+            lm_stderr_sel = GLM.coeftable(lm_on_split2).cols[2][1:(p - 1)]
         else
             lm_on_v_coef = GLM.coef(lm_on_split2)
             lm_pvalues_subset = GLM.coeftable(lm_on_split2).cols[4]
             lm_coef_int = 0.
+            lm_stderr_sel = GLM.coeftable(lm_on_split2).cols[2]
         end
+        # residual degrees of freedom
+        lm_dof = GLM.dof_residual(lm_on_split2)
 
         lm_coef = zeros(length(lasso_coef))
+        lm_sdterr = zeros(length(lasso_coef))
         lm_pvalues = ones(length(lasso_coef)) # pvalue for excluded vars assumed to be 1
         lm_coef[non_zero] = lm_on_v_coef
         lm_pvalues[non_zero] = lm_pvalues_subset
+        lm_sdterr[non_zero] = lm_stderr_sel
 
-        return (lasso_coef=lasso_coef, lm_coef=lm_coef, lm_pvalues=lm_pvalues, lm_coef_int=lm_coef_int)
+        return (
+            lasso_coef=lasso_coef,
+            lm_coef=lm_coef,
+            lm_pvalues=lm_pvalues,
+            lm_coef_int=lm_coef_int,
+            lm_sdterr=lm_sdterr,
+            lm_dof=lm_dof
+            )
     end
 
 end

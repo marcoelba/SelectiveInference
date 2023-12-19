@@ -76,7 +76,7 @@ module randomisation_ds
         )
 
         " Perform variable selection on U using Lasso and Inference on V using OLS "
-        lasso_coef, lm_coef, lm_pvalues, lm_coef_int = variable_selection_plus_inference.lasso_plus_ols(
+        lasso_coef, lm_coef, lm_pvalues, lm_coef_int, lm_sdterr, lm_dof = variable_selection_plus_inference.lasso_plus_ols(
             X1=X,
             X2=X,
             y1=u,
@@ -117,7 +117,7 @@ module randomisation_ds
         )
 
         " Perform variable selection on U using Lasso and Inference on V using OLS "
-        lasso_coef, lm_coef, lm_pvalues, lm_coef_int = variable_selection_plus_inference.lasso_plus_ols(
+        lasso_coef, lm_coef, lm_pvalues, lm_coef_int, lm_sdterr, lm_dof = variable_selection_plus_inference.lasso_plus_ols(
             X1=X,
             X2=X,
             y1=u,
@@ -136,7 +136,9 @@ module randomisation_ds
             ("selected_ms_coef" => ms_coef .> optimal_t),
             ("lm_coef" => lm_coef),
             ("lm_pvalues" => lm_pvalues),
-            ("lm_coef_int" => lm_coef_int)
+            ("lm_coef_int" => lm_coef_int),
+            ("lm_sdterr" => lm_sdterr),
+            ("lm_dof" => lm_dof)
         )
 
         return out_dict

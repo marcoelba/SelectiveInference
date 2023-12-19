@@ -10,6 +10,7 @@ using Plots
 using StatsBase
 using LinearAlgebra
 using MultivariateStats
+using Random
 
 script_path = normpath(joinpath(@__FILE__, "..", ".."))
 include(joinpath(script_path, "src", "utilities", "randomisation_ds.jl"))
@@ -144,7 +145,7 @@ plot(prop_explained_var, marker=(:circle, 5), label="prop")
 """
     Run Randomisation + Mirror Statistic
 """
-
+Random.seed!(45)
 # ---------------- FDR: 10% ----------------
 res = randomisation_ds.real_data_rand_ms(
     y=y,
