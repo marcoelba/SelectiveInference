@@ -14,6 +14,7 @@ using Random
 
 script_path = normpath(joinpath(@__FILE__, "..", ".."))
 include(joinpath(script_path, "src", "utilities", "randomisation_ds.jl"))
+include(joinpath(script_path, "src", "utilities", "variable_selection_plus_inference.jl"))
 
 # Load data
 file_path_outcome = "/home/marco_ocbe/Documents/UiO_Postdoc/data/NoMa/noma_trigs.csv"
@@ -28,8 +29,6 @@ genes_names = [nn for nn in names(df_X) if nn != "ID"]
 Plots.histogram(df_y.fSTrig, label="Trigs")
 sum(skipmissing(df_y.fSTrig) .== 0.)
 minimum(skipmissing(df_y.fSTrig))
-
-Plots.histogram(log.(y.fSTrig), label="Trigs")
 
 # Merge y and X
 df = DataFrames.innerjoin(df_y, df_X, on=:ID)
@@ -145,7 +144,7 @@ plot(prop_explained_var, marker=(:circle, 5), label="prop")
 """
     Run Randomisation + Mirror Statistic
 """
-Random.seed!(45)
+Random.seed!(433)
 # ---------------- FDR: 10% ----------------
 res = randomisation_ds.real_data_rand_ms(
     y=y,
@@ -168,8 +167,6 @@ genes_names[res["selected_ms_coef"]]
 # and may regulate cellular lipid homeostasis in other cell types. 
 # Six alternative splice variants have been identified.
 
-# "AI207942"
-
 
 # LM coefs and p-values
 res["lm_coef"][res["selected_ms_coef"]]
@@ -184,33 +181,3 @@ exp.(res["lm_coef"][res["selected_ms_coef"]])
 exp(res["lm_coef_int"])
 
 exp(res["lm_coef_int"]) .* exp.(res["lm_coef"][res["selected_ms_coef"]])
-
-
-# only pvalues
-sum(res["lm_pvalues"] .<= 0.05)
-
-# LASSO selection
-sum(res["lm_coef"] .!= 0)
-
-# ---------------- FDR: 20% ----------------
-res = randomisation_ds.real_data_rand_ms(
-    y=y,
-    X=X,
-    gamma=1.,
-    fdr_level=0.3,
-    alpha_lasso=1.
-)
-
-println("Number of selected features: $(sum(res["selected_ms_coef"]))")
-genes_names[res["selected_ms_coef"]]
-# "ABCG1"
-# "AI207942"
-# "ALDH6A1"
-# "ANKRD12"
-
-# LM coefs and p-values
-res["lm_coef"][res["selected_ms_coef"]]
-res["lm_pvalues"][res["selected_ms_coef"]]
-
-# only pvalues
-sum(res["lm_pvalues"] .<= 0.05)

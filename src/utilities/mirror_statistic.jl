@@ -49,7 +49,7 @@ module mirror_statistic
     """
     function data_splitting(X::AbstractArray, y::Vector{Float64})
         n = length(y)
-        r = Distributions.sample(range(1, n), Int(n/2), replace=false)
+        r = Distributions.sample(range(1, n), Int(round(n/2)), replace=false)
         rc = setdiff(range(1, n), r)
 
         y1 = y[r]
