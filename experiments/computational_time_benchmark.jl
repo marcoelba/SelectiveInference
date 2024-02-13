@@ -25,7 +25,7 @@ beta_signal_strength = 5.
 beta_pool = [-1., -0.5, 0.5, 1.]
 prop_non_zero_coef = p1 / p
 
-data = data_generation.linear_regression_data(
+data = RandMirror.data_generation.linear_regression_data(
     n=n,
     p=p,
     beta_intercept=1.,
@@ -43,37 +43,6 @@ X = data.X
 Base.summarysize(X) / (1024^2)
 Base.summarysize(y) / (1024^2)
 Base.summarysize(data.covariance_matrix) / (1024^2)
-
-
-# ------------- test memory size of big matrix -------------
-k = 10000
-# x_dist = Distributions.Normal{Float32}(0.f0, 1.f0)
-x_dist = Distributions.Normal{Float64}(0., 1.)
-X = rand(x_dist, k, k)
-Base.summarysize(X) / (1024^2)
-
-X = nothing
-Base.GC.gc()
-
-
-using GLMNet
-using LARS
-
-# LASSO
-lasso_cv = GLMNet.glmnetcv(X, y, alpha=1., dfmax=30)
-lasso_coef = GLMNet.coef(lasso_cv)
-# Non-0 coefficients
-non_zero = lasso_coef .!= 0
-sum(non_zero)
-# Time
-@benchmark GLMNet.glmnetcv(X, y, alpha=1.)
-
-
-# LARS
-lars_est = LARS.lars(copy(X), y, method=:lasso, verbose=false)
-
-
-# -----------------------------------------------------------------
 
 
 function rand_ms_timing()
