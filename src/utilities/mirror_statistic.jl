@@ -3,8 +3,7 @@ module mirror_statistic
     using Random
     using Distributions
 
-    abs_project_path = normpath(joinpath(@__FILE__, "..", ".."))
-    include(joinpath(abs_project_path, "utilities", "variable_selection_plus_inference.jl"))
+    using RandMirror: variable_selection_plus_inference
 
 
     """

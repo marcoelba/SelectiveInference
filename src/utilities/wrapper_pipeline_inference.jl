@@ -11,13 +11,7 @@ module wrapper_pipeline_inference
     using LinearAlgebra
     using DataFrames
 
-    rel_path = normpath(joinpath(@__FILE__,".."))
-
-    include(joinpath(rel_path, "data_generation.jl"))
-    include(joinpath(rel_path, "randomisation_ds.jl"))
-    include(joinpath(rel_path, "mirror_statistic.jl"))
-    include(joinpath(rel_path, "classification_metrics.jl"))
-    include(joinpath(rel_path, "variable_selection_plus_inference.jl"))
+    using RandMirror: data_generation, randomisation_ds, mirror_statistic, variable_selection_plus_inference
 
 
     """
