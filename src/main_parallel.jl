@@ -4,8 +4,8 @@ using CSV
 using DataFrames
 using Dates
 
-abs_project_path = normpath(joinpath(@__FILE__,"..", "..", "src"))
-include(joinpath(abs_project_path, "utilities", "simulation_runner.jl"))
+using RandMirror
+
 
 function single_csv_file_name(;base_experiment_dir, beta_value, rho_value, prop_non_zero)
     rho_value = floor(Int, rho_value*100)

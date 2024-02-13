@@ -12,9 +12,9 @@ using LinearAlgebra
 using MultivariateStats
 using Random
 
-script_path = normpath(joinpath(@__FILE__, "..", ".."))
-include(joinpath(script_path, "src", "utilities", "randomisation_ds.jl"))
-include(joinpath(script_path, "src", "utilities", "variable_selection_plus_inference.jl"))
+using RandMirror
+using RandMirror: randomisation_ds, variable_selection_plus_inference
+
 
 # Load data
 file_path_outcome = "/home/marco_ocbe/Documents/UiO_Postdoc/data/NoMa/noma_trigs.csv"

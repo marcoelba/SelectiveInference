@@ -4,9 +4,7 @@ using CSV
 using DataFrames
 using Dates
 
-abs_project_path = normpath(joinpath(@__FILE__,"..", "..", "src"))
-include(joinpath(abs_project_path, "utilities", "simulation_runner.jl"))
-
+using RandMirror
 
 # Fixed parameters
 n = 800

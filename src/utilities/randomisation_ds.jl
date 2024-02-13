@@ -7,9 +7,7 @@ module randomisation_ds
     using GLMNet
     using LinearAlgebra
 
-    abs_project_path = normpath(joinpath(@__FILE__, "..", ".."))
-    include(joinpath(abs_project_path, "utilities", "variable_selection_plus_inference.jl"))
-    include(joinpath(abs_project_path, "utilities", "mirror_statistic.jl"))
+    using RandMirror: variable_selection_plus_inference, mirror_statistic
 
     
     """
