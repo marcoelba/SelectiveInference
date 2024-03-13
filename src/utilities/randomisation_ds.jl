@@ -131,6 +131,8 @@ module randomisation_ds
 
         # Return dictionary with all useful objects
         out_dict = Dict(
+            ("ms_coef" => ms_coef),
+            ("optimal_t" => optimal_t),
             ("selected_ms_coef" => ms_coef .> optimal_t),
             ("lm_coef" => lm_coef),
             ("lm_pvalues" => lm_pvalues),
