@@ -49,7 +49,7 @@ module randomisation_ds
 
         v = y - 1/gamma * w
 
-        return (u=u, v=v)
+        return (u=u, v=v, sigma2_estimate=sigma2_estimate)
     end
 
     """
@@ -65,7 +65,7 @@ module randomisation_ds
         alpha_lasso::Float64=1.
         )
         # Do Randomisation
-        u, v = randomisation(
+        u, v, sigma2_est = randomisation(
             y=y,
             X=X,
             gamma=gamma,
@@ -106,7 +106,7 @@ module randomisation_ds
         alpha_lasso::Float64=1.
         )
         # Do Randomisation
-        u, v = randomisation(
+        u, v, sigma2_est = randomisation(
             y=y,
             X=X,
             gamma=gamma,
