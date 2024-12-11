@@ -21,7 +21,9 @@ module data_generation
         block_covariance::Bool=false,
         beta_pool::Union{Vector{Float64}, Vector{Any}}=[],
         beta_signal_strength::Float64=1.,
-        prop_zero_coef::Float64=0.
+        prop_zero_coef::Float64=0.,
+        include_binary_covariates::Bool=false,
+        prop_binary::Float64=0.5,
         )
         if prop_zero_coef >= 1.
             throw(error("prop_zero_coef MUST be < 1"))
@@ -37,13 +39,11 @@ module data_generation
         end
 
         # Set coefficients to 0
+        n_zero_coef = floor(Int, p * prop_zero_coef)
         if prop_zero_coef > 0.
-            n_zero_coef = floor(Int, p * prop_zero_coef)
             # If the X cov structure is block diagonal, set the first n0 coeff to 0, otherwise random selection
             if block_covariance
                 which_zero = range(1, n_zero_coef)
-            else
-                which_zero = sample(range(1, p), n_zero_coef, replace=false)
             end
             beta_true[which_zero] .= 0.
         end
@@ -70,6 +70,16 @@ module data_generation
         x_distr = Distributions.MultivariateNormal(covariance_x)
         X = transpose(Random.rand(x_distr, n))
 
+        if include_binary_covariates
+            # include some active and non-active binary covariates
+            p0_bin = Int(n_zero_coef * prop_binary)
+            p1_bin = Int((p - n_zero_coef) * prop_binary)
+            which_p0_bin = range(n_zero_coef - p0_bin + 1, n_zero_coef)
+            which_p1_bin = range(p - p1_bin + 1, p)
+
+            X[:, which_p0_bin] = X[:, which_p0_bin] .> 0
+            X[:, which_p1_bin] = X[:, which_p1_bin] .> 0
+        end
         # Get y = X * beta + err ~ N(0, 1)
         y = X * beta_true + Random.rand(Distributions.Normal(0., sqrt(sigma2)), n)
         if beta_intercept > 0

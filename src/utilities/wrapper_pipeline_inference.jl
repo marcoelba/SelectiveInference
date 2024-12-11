@@ -11,7 +11,7 @@ module wrapper_pipeline_inference
     using LinearAlgebra
     using DataFrames
 
-    using RandMirror: data_generation, randomisation_ds, mirror_statistic, variable_selection_plus_inference
+    using RandMirror: data_generation, randomisation_ds, mirror_statistic, variable_selection_plus_inference, classification_metrics
 
 
     """

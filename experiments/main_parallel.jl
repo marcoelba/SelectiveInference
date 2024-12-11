@@ -23,7 +23,7 @@ end
 # Fixed parameters
 n = 800
 p = 1000
-n_replications = 50
+n_replications = 10
 methods_to_evaluate=["Rand_MS", "DS", "MDS"]
 alpha_enet = 1.
 use_beta_pool = true
@@ -31,8 +31,8 @@ cov_like_MS_paper = true
 block_covariance = true
 
 # Variable quantities (choose between sign strenght and beta pool vec)
-corr_coefficients_vec = [0., 0.3, 0.5, 0.7, 0.9, 0.95, 0.99]
-prop_non_zero_coef_vec = [0.025, 0.05, 0.1, 0.2, 0.3]
+corr_coefficients_vec = [0., 0.3, 0.5, 0.7, 0.9, 0.99]
+prop_non_zero_coef_vec = [0.05, 0.1, 0.2, 0.3]
 
 if use_beta_pool
     beta_signal_strength_vec = [1.]
@@ -87,10 +87,12 @@ Threads.@threads for prop_non_zero in prop_non_zero_coef_vec
                 block_covariance=block_covariance,
                 beta_signal_strength=beta_signal_strength,
                 beta_pool=beta_pool,
-                prop_non_zero_coef=prop_non_zero
+                prop_non_zero_coef=prop_non_zero,
+                include_binary_covariates=true,
+                prop_binary=0.5    
             )
             
-            df_metrics = generate_predictions(
+            df_metrics = RandMirror.generate_predictions(
                 n_replications=n_replications,
                 data_generation_params=data_generation_params,
                 fdr_level=0.1,

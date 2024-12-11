@@ -9,10 +9,10 @@ using RandMirror
 # Fixed parameters
 n = 800
 p = 200
-prop_non_zero_coef = 0.025
+prop_non_zero_coef = 0.05
 n_replications = 2
-methods_to_evaluate=["DS", "MDS"]
-alpha_lasso = 0.7
+methods_to_evaluate=["DS", "Rand_MS"]
+alpha_lasso = 1.
 
 # Variable quantities (choose between sign strenght and beta pool vec)
 corr_coefficients_vec = [0., 0.2, 0.4, 0.6, 0.8]
@@ -56,10 +56,12 @@ for corr_coeff in corr_coefficients_vec
             block_covariance=true,
             beta_signal_strength=beta_signal_strength,
             beta_pool=beta_pool,
-            prop_non_zero_coef=prop_non_zero_coef
+            prop_non_zero_coef=prop_non_zero_coef,
+            include_binary_covariates=true,
+            prop_binary=0.5
         )
         
-        df_metrics = generate_predictions(
+        df_metrics = RandMirror.generate_predictions(
             n_replications=n_replications,
             data_generation_params=data_generation_params,
             fdr_level=0.1,

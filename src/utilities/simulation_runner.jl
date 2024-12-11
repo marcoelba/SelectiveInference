@@ -29,7 +29,9 @@ function generate_single_prediction(;
         block_covariance=data_generation_params.block_covariance,
         beta_signal_strength=data_generation_params.beta_signal_strength,
         beta_pool=data_generation_params.beta_pool,
-        prop_zero_coef=1. - data_generation_params.prop_non_zero_coef
+        prop_zero_coef=1. - data_generation_params.prop_non_zero_coef,
+        include_binary_covariates=data_generation_params.include_binary_covariates,
+        prop_binary=data_generation_params.prop_binary    
     )
     # store the lowest eigenvalue (as a measure of how well-conditioned is the cov matrix)
     cov_eigval = LinearAlgebra.eigvals(data.covariance_matrix)[1]
@@ -107,11 +109,13 @@ end
 #     sigma2 = 1.,
 #     correlation_coefficients = [0.99],
 #     cov_like_MS_paper=true,
-#     block_covariance=false,
+#     block_covariance=true,
 #     beta_signal_strength = 5.,
 #     # beta_pool=[],
 #     beta_pool=[-1.5, -1., -0.8, 0.8, 1., 1.5],
-#     prop_non_zero_coef = 0.2
+#     prop_non_zero_coef = 0.2,
+#     include_binary_covariates=true,
+#     prop_binary=0.5
 # )
 
 # data = data_generation.linear_regression_data(
@@ -124,7 +128,9 @@ end
 #     block_covariance=data_generation_params.block_covariance,
 #     beta_signal_strength=data_generation_params.beta_signal_strength,
 #     beta_pool=data_generation_params.beta_pool,
-#     prop_zero_coef=1 - data_generation_params.prop_non_zero_coef
+#     prop_zero_coef=1 - data_generation_params.prop_non_zero_coef,
+#     include_binary_covariates=true,
+#     prop_binary=0.5
 # )
 # data.covariance_matrix
 # LinearAlgebra.eigvals(data.covariance_matrix)
@@ -166,7 +172,9 @@ end
 #     estimate_sigma2=true,
 #     methods_to_evaluate=methods_to_evaluate,
 #     fdr_level=0.1,
-#     alpha_lasso=alpha_lasso
+#     alpha_lasso=alpha_lasso,
+#     include_binary_covariates=true,
+#     prop_binary=0.5
 # )
 
 # df_metrics = generate_predictions(
